@@ -62,8 +62,8 @@ def fetch_recent():
 
     r = requests.get(
         f"{BASE}/states/all",
-        params={"begin": begin, "end": now},
-        auth=(OPENSKY_USER, OPENSKY_PASS),
+        # params={"begin": begin, "end": now},
+        # auth=(OPENSKY_USER, OPENSKY_PASS),
         timeout=10,
     )
     r.raise_for_status()
