@@ -90,16 +90,16 @@ def main():
         mark_seen(icao)
 
         body = f"""
-        # TAKEOFF detected
+        TAKEOFF detected
         
-        **Callsign:** {callsign}
+        Callsign: {callsign}
         ICAO24: {icao}
         Origin country: {origin_country}
         
         Position:
           Latitude: {latitude}
           Longitude: {longitude}
-          [View on map](https://www.google.com/maps/search/?api=1&query={latitude},{longitude})
+          View on map: https://www.google.com/maps/search/?api=1&query={latitude},{longitude}
         
         Altitude:
           Barometric: {baro_altitude} m
