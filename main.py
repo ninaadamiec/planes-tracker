@@ -15,7 +15,7 @@ SMTP_PASS = os.environ["SMTP_PASS"]
 EMAIL_TO = os.environ["EMAIL_TO"]
 EMAIL_FROM = os.environ["EMAIL_FROM"]
 
-BASE = "https://opensky-network.org/api"
+BASE = "https://opensky-network.org/api/states/all"
 
 DB = "seen.db"
 
@@ -24,8 +24,7 @@ def init_db():
     cur = con.cursor()
     cur.execute("""
     CREATE TABLE IF NOT EXISTS seen (
-        icao24 TEXT PRIMARY KEY,
-        ts INTEGER
+        icao24 TEXT PRIMARY KEY
     )
     """)
     con.commit()
@@ -35,12 +34,14 @@ def already_seen(icao):
     con = sqlite3.connect(DB)
     cur = con.cursor()
     cur.execute("SELECT 1 FROM seen WHERE icao24=?", (icao,))
-    return cur.fetchone() is not None
+    result = cur.fetchone() is not None
+    con.close()
+    return result
 
-def mark_seen(icao, ts):
+def mark_seen(icao):
     con = sqlite3.connect(DB)
     cur = con.cursor()
-    cur.execute("INSERT OR IGNORE INTO seen VALUES (?,?)", (icao, ts))
+    cur.execute("INSERT OR IGNORE INTO seen VALUES (?)", (icao,))
     con.commit()
     con.close()
 
@@ -57,50 +58,51 @@ def send_mail(subject, body):
         s.send_message(msg)
 
 def fetch_recent():
-    now = int(time.time())
-    begin = now - 180
-
-    r = requests.get(
-        f"{BASE}/states/all",
-        # params={"begin": begin, "end": now},
-        # auth=(OPENSKY_USER, OPENSKY_PASS),
-        timeout=10,
-    )
+    r = requests.get(BASE, timeout=10)
     r.raise_for_status()
     return r.json()
 
 def main():
     init_db()
 
-    flights = fetch_recent()
+    data = fetch_recent()
+    flights = data.get("states", [])
 
     for f in flights:
+        icao = f[0]
         callsign = (f[1] or "").strip()
+        origin_country = f[2]
+        longitude = f[5]
+        latitude = f[6]
+        baro_altitude = f[7]
+        on_ground = f[8]
+        velocity = f[9]
 
         if not callsign.startswith(CALLSIGN_PREFIX):
             continue
 
-        icao = f["icao24"]
-
         if already_seen(icao):
             continue
 
-        mark_seen(icao, f["firstSeen"])
+        if on_ground or velocity is None or velocity < 50:
+            continue
+
+        mark_seen(icao)
 
         body = (
             f"TAKEOFF detected\n\n"
             f"Callsign: {callsign}\n"
-            f"Origin country: {origin_country}\n"
             f"ICAO24: {icao}\n"
+            f"Origin country: {origin_country}\n"
             f"Longitude: {longitude}\n"
             f"Latitude: {latitude}\n"
             f"Altitude: {baro_altitude}\n"
-            f"On ground: {on_ground}\n"
+            f"Velocity: {velocity}\n"
             f"Time: {time.ctime()}\n"
-)
+        )
 
-if on_ground is False:
         send_mail("CMB aircraft departed", body)
+        print(f"Alert sent for {callsign} ({icao})")
 
 if __name__ == "__main__":
     main()
