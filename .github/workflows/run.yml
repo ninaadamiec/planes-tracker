@@ -17,7 +17,7 @@ jobs:
           python-version: "3.11"
 
       - name: Download previous seen.db
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: seen-db
           path: ./ 
@@ -35,7 +35,7 @@ jobs:
         run: python main.py
 
       - name: Upload seen.db
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: seen-db
           path: seen.db
