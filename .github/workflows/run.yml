@@ -8,13 +8,20 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-
+    
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Download previous seen.db
+        uses: actions/download-artifact@v3
+        with:
+          name: seen-db
+          path: ./ 
+          if-no-files-found: ignore
 
       - run: pip install -r requirements.txt
 
@@ -26,3 +33,9 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: python main.py
+
+      - name: Upload seen.db
+        uses: actions/upload-artifact@v3
+        with:
+          name: seen-db
+          path: seen.db
