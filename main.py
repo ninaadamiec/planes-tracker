@@ -61,10 +61,10 @@ def fetch_recent():
     begin = now - 180
 
     r = requests.get(
-        f"{BASE}/flights/all",
+        f"{BASE}/states/all",
         params={"begin": begin, "end": now},
         auth=(OPENSKY_USER, OPENSKY_PASS),
-        timeout=20,
+        timeout=10,
     )
     r.raise_for_status()
     return r.json()
