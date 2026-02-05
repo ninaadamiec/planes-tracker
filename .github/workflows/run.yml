@@ -17,11 +17,12 @@ jobs:
           python-version: "3.11"
 
       - name: Download previous seen.db
+        id: download_seen
         uses: actions/download-artifact@v4
         with:
           name: seen-db
-          path: ./ 
-          if-no-files-found: ignore
+          path: ./seen.db
+        continue-on-error: true 
 
       - run: pip install -r requirements.txt
 
