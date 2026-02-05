@@ -63,7 +63,8 @@ def fetch_recent():
     return r.json()
 
 def main():
-    init_db()
+    if not os.path.exists(DB):
+        init_db()
 
     data = fetch_recent()
     flights = data.get("states", [])
