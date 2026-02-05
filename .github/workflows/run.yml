@@ -23,4 +23,6 @@ jobs:
           OPENSKY_USER: ${{ secrets.OPENSKY_USER }}
           OPENSKY_PASS: ${{ secrets.OPENSKY_PASS }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: python main.py
