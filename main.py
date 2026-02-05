@@ -89,17 +89,33 @@ def main():
 
         mark_seen(icao)
 
-        body = (
-            f"TAKEOFF detected\n\n"
-            f"Callsign: {callsign}\n"
-            f"ICAO24: {icao}\n"
-            f"Origin country: {origin_country}\n"
-            f"Longitude: {longitude}\n"
-            f"Latitude: {latitude}\n"
-            f"Altitude: {baro_altitude}\n"
-            f"Velocity: {velocity}\n"
-            f"Time: {time.ctime()}\n"
-        )
+        body = f"""
+        # TAKEOFF detected
+        
+        **Callsign:** {callsign}
+        ICAO24: {icao}
+        Origin country: {origin_country}
+        
+        Position:
+          Latitude: {latitude}
+          Longitude: {longitude}
+          [View on map](https://www.google.com/maps/search/?api=1&query={latitude},{longitude})
+        
+        Altitude:
+          Barometric: {baro_altitude} m
+          Geometric: {f[13]} m
+        
+        Velocity: {velocity} m/s
+        Heading: {f[10]}°
+        Vertical rate: {f[11]} m/s
+        
+        On ground: {on_ground}
+        Squawk: {f[14]}
+        SPI: {f[15]}
+        Position source: {f[16]}
+        
+        Time detected: {time.ctime()}
+        """
 
         send_mail("CMB aircraft departed", body)
         print(f"Alert sent for {callsign} ({icao})")
