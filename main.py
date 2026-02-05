@@ -90,11 +90,16 @@ def main():
         body = (
             f"TAKEOFF detected\n\n"
             f"Callsign: {callsign}\n"
-            f"From: {f['estDepartureAirport']}\n"
-            f"To: {f['estArrivalAirport']}\n"
-            f"Time: {time.ctime(f['firstSeen'])}\n"
-        )
+            f"Origin country: {origin_country}\n"
+            f"ICAO24: {icao}\n"
+            f"Longitude: {longitude}\n"
+            f"Latitude: {latitude}\n"
+            f"Altitude: {baro_altitude}\n"
+            f"On ground: {on_ground}\n"
+            f"Time: {time.ctime()}\n"
+)
 
+if on_ground is False:
         send_mail("CMB aircraft departed", body)
 
 if __name__ == "__main__":
