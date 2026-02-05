@@ -75,7 +75,7 @@ def main():
     flights = fetch_recent()
 
     for f in flights:
-        callsign = (f["callsign"] or "").strip()
+        callsign = (f[1] or "").strip()
 
         if not callsign.startswith(CALLSIGN_PREFIX):
             continue
