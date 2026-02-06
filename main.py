@@ -37,7 +37,7 @@ def init_db():
             """
         )
         
-         con.execute(
+        con.execute(
             """
             CREATE TABLE IF NOT EXISTS aircraft (
                 icao24 TEXT PRIMARY KEY,
