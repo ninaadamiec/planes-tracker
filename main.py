@@ -6,44 +6,63 @@ from email.message import EmailMessage
 import smtplib
 
 CALLSIGN_PREFIX = "CMB"
+MIN_SPEED = 50
 
 OPENSKY_USER = os.environ["OPENSKY_USER"]
 OPENSKY_PASS = os.environ["OPENSKY_PASS"]
 
 SMTP_PASS = os.environ["SMTP_PASS"]
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 587
 
 EMAIL_TO = os.environ["EMAIL_TO"]
 EMAIL_FROM = os.environ["EMAIL_FROM"]
 
 BASE = "https://opensky-network.org/api/states/all"
+META_BASE = "https://opensky-network.org/api/metadata/aircraft/icao"
 
-DB = "seen.db"
+DB_PATH = "seen.db"
+
+def get_db():
+    return sqlite3.connect(DB_PATH)
 
 def init_db():
-    con = sqlite3.connect(DB)
-    cur = con.cursor()
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS seen (
-        icao24 TEXT PRIMARY KEY
-    )
-    """)
-    con.commit()
-    con.close()
+    with get_db() as con:
+        con.execute(
+            """
+            CREATE TABLE IF NOT EXISTS seen (
+                icao24 TEXT PRIMARY KEY
+            )
+            """
+        )
 
 def already_seen(icao):
-    con = sqlite3.connect(DB)
-    cur = con.cursor()
-    cur.execute("SELECT 1 FROM seen WHERE icao24=?", (icao,))
-    result = cur.fetchone() is not None
-    con.close()
-    return result
+    with get_db() as con:
+        cur = con.execute("SELECT 1 FROM seen WHERE icao24=?", (icao,))
+        return cur.fetchone() is not None
 
 def mark_seen(icao):
-    con = sqlite3.connect(DB)
-    cur = con.cursor()
-    cur.execute("INSERT OR IGNORE INTO seen VALUES (?)", (icao,))
-    con.commit()
-    con.close()
+    with get_db() as con:
+        con.execute("INSERT OR IGNORE INTO seen VALUES (?)", (icao,))
+
+def fetch_recent():
+    r = requests.get(BASE, timeout=10)
+    r.raise_for_status()
+    return r.json()
+
+def fetch_aircraft_meta(icao):
+    try:
+        r = requests.get(
+            f"{META_BASE}/{icao}",
+            auth=(OPENSKY_USER, OPENSKY_PASS),
+            timeout=10,
+        )
+        if r.status_code == 200:
+            return r.json()
+    except Exception:
+        pass
+
+    return None
 
 def send_mail(subject, body):
     msg = EmailMessage()
@@ -52,19 +71,13 @@ def send_mail(subject, body):
     msg["Subject"] = subject
     msg.set_content(body)
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as s:
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
         s.starttls()
         s.login(EMAIL_FROM, SMTP_PASS)
         s.send_message(msg)
-
-def fetch_recent():
-    r = requests.get(BASE, timeout=10)
-    r.raise_for_status()
-    return r.json()
-
+        
 def main():
-    if not os.path.exists(DB):
-        init_db()
+init_db()
 
     data = fetch_recent()
     flights = data.get("states", [])
@@ -78,6 +91,12 @@ def main():
         baro_altitude = f[7]
         on_ground = f[8]
         velocity = f[9]
+        heading = f[10]
+        vertical_rate = f[11]
+        geo_altitude = f[13]
+        squawk = f[14]
+        spi = f[15]
+        position_source = f[16]
 
         if not callsign.startswith(CALLSIGN_PREFIX):
             continue
@@ -85,7 +104,7 @@ def main():
         if already_seen(icao):
             continue
 
-        if on_ground or velocity is None or velocity < 50:
+        if on_ground or velocity is None or velocity < MIN_SPEED:
             continue
 
         mark_seen(icao)
