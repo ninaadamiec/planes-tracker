@@ -78,7 +78,7 @@ def send_mail(subject, body):
         s.send_message(msg)
         
 def main():
-init_db()
+    init_db()
 
     data = fetch_recent()
     flights = data.get("states", [])
