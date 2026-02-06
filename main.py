@@ -36,6 +36,48 @@ def init_db():
             )
             """
         )
+         con.execute(
+            """
+            CREATE TABLE IF NOT EXISTS aircraft (
+                icao24 TEXT PRIMARY KEY,
+                typecode TEXT,
+                model TEXT,
+                operator TEXT
+            )
+            """
+        )
+
+def cache_aircraft_meta(icao, meta):
+    with get_db() as con:
+        con.execute(
+            """
+            INSERT OR REPLACE INTO aircraft
+            VALUES (?,?,?,?)
+            """,
+            (
+                icao,
+                meta.get("typecode"),
+                meta.get("model"),
+                meta.get("operator"),
+            ),
+        )
+
+def get_cached_meta(icao):
+    with get_db() as con:
+        cur = con.execute(
+            "SELECT typecode, model, operator FROM aircraft WHERE icao24=?",
+            (icao,),
+        )
+        row = cur.fetchone()
+
+    if row:
+        return {
+            "typecode": row[0],
+            "model": row[1],
+            "operator": row[2],
+        }
+
+    return None
 
 def already_seen(icao):
     with get_db() as con:
@@ -100,19 +142,24 @@ def main():
         position_source = f[16]
 
         is_cmb = callsign.startswith(CALLSIGN_PREFIX)
+        meta = get_cached_meta(icao)
+        if not meta:
         meta = fetch_aircraft_meta(icao)
+        if meta:
+            cache_aircraft_meta(icao, meta)
+    
         is_an124 = False
-        
+    
         if meta:
             typecode = (meta.get("typecode") or "").upper()
             model = (meta.get("model") or "").upper()
-        
-            if typecode in AN124_TYPECODES in model:
-                is_an124 = True
-        
+
+        if typecode in AN124_TYPECODES in model:
+        is_an124 = True
+
         if not (is_cmb or is_an124):
             continue
-
+            
         if already_seen(icao):
             continue
 
@@ -149,7 +196,13 @@ def main():
         Time detected: {time.ctime()}
         """
 
-        send_mail("CMB aircraft departed", body)
+        subject = (
+            "✈️ Antonov An-124 detected"
+            if is_an124
+            else "CMB aircraft departed"
+        )
+
+        send_mail(subject, body)
         print(f"Alert sent for {callsign} ({icao})")
 
 if __name__ == "__main__":
