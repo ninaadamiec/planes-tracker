@@ -5,6 +5,7 @@ import requests
 from email.message import EmailMessage
 import smtplib
 
+AN124_TYPECODES = {"A124", "AN-124", "AN124"}
 CALLSIGN_PREFIX = "CMB"
 MIN_SPEED = 50
 
@@ -98,7 +99,18 @@ init_db()
         spi = f[15]
         position_source = f[16]
 
-        if not callsign.startswith(CALLSIGN_PREFIX):
+        is_cmb = callsign.startswith(CALLSIGN_PREFIX)
+        meta = fetch_aircraft_meta(icao)
+        is_an124 = False
+        
+        if meta:
+            typecode = (meta.get("typecode") or "").upper()
+            model = (meta.get("model") or "").upper()
+        
+            if typecode in AN124_TYPECODES in model:
+                is_an124 = True
+        
+        if not (is_cmb or is_an124):
             continue
 
         if already_seen(icao):
