@@ -187,7 +187,7 @@ def main():
         """
 
         subject = (
-            "✈️ Antonov An-124 detected"
+            "Antonov An-124 detected"
             if is_an124
             else "CMB aircraft departed"
         )
