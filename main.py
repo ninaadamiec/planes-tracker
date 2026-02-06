@@ -36,6 +36,7 @@ def init_db():
             )
             """
         )
+        
          con.execute(
             """
             CREATE TABLE IF NOT EXISTS aircraft (
