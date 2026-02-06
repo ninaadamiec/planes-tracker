@@ -36,7 +36,6 @@ def init_db():
             )
             """
         )
-        
         con.execute(
             """
             CREATE TABLE IF NOT EXISTS aircraft (
@@ -70,14 +69,8 @@ def get_cached_meta(icao):
             (icao,),
         )
         row = cur.fetchone()
-
     if row:
-        return {
-            "typecode": row[0],
-            "model": row[1],
-            "operator": row[2],
-        }
-
+        return {"typecode": row[0], "model": row[1], "operator": row[2]}
     return None
 
 def already_seen(icao):
@@ -105,7 +98,6 @@ def fetch_aircraft_meta(icao):
             return r.json()
     except Exception:
         pass
-
     return None
 
 def send_mail(subject, body):
@@ -114,7 +106,6 @@ def send_mail(subject, body):
     msg["To"] = EMAIL_TO
     msg["Subject"] = subject
     msg.set_content(body)
-
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
         s.starttls()
         s.login(EMAIL_FROM, SMTP_PASS)
@@ -122,7 +113,6 @@ def send_mail(subject, body):
         
 def main():
     init_db()
-
     data = fetch_recent()
     flights = data.get("states", [])
 
@@ -144,23 +134,20 @@ def main():
 
         is_cmb = callsign.startswith(CALLSIGN_PREFIX)
         meta = get_cached_meta(icao)
-        if not meta:
-        meta = fetch_aircraft_meta(icao)
-        if meta:
-            cache_aircraft_meta(icao, meta)
+        if not meta and is_cmb:
+            meta = fetch_aircraft_meta(icao)
+            if meta:
+                cache_aircraft_meta(icao, meta)
     
         is_an124 = False
-    
         if meta:
             typecode = (meta.get("typecode") or "").upper()
-            model = (meta.get("model") or "").upper()
-
-        if typecode in AN124_TYPECODES in model:
-        is_an124 = True
+            if typecode in AN124_TYPECODES:
+                is_an124 = True
 
         if not (is_cmb or is_an124):
             continue
-            
+
         if already_seen(icao):
             continue
 
@@ -168,6 +155,8 @@ def main():
             continue
 
         mark_seen(icao)
+
+        maps_url = f"https://www.google.com/maps/search/?api=1&query={latitude},{longitude}"
 
         body = f"""
         TAKEOFF detected
@@ -179,7 +168,7 @@ def main():
         Position:
           Latitude: {latitude}
           Longitude: {longitude}
-          View on map: https://www.google.com/maps/search/?api=1&query={latitude},{longitude}
+          Map: {maps_url}
         
         Altitude:
           Barometric: {baro_altitude} m
