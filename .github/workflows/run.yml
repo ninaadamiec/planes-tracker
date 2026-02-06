@@ -16,13 +16,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Download previous seen.db
-        id: download_seen
-        uses: actions/download-artifact@v4
+      - name: Restore seen.db cache
+        uses: actions/cache@v4
         with:
-          name: seen-db
-          path: ./seen.db
-        continue-on-error: true 
+          path: seen.db
+          key: seen-db
 
       - run: pip install -r requirements.txt
 
@@ -35,8 +33,8 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: python main.py
 
-      - name: Upload seen.db
-        uses: actions/upload-artifact@v4
+      - name: Save seen.db cache
+        uses: actions/cache@v4
         with:
-          name: seen-db
           path: seen.db
+          key: seen-db
