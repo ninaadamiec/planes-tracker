@@ -8,7 +8,7 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -16,11 +16,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Restore seen.db cache
-        uses: actions/cache@v4
+      - name: Download seen database
+        uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
-          path: seen.db
-          key: seen-db
+          name: seen-db
+          path: .
 
       - run: pip install -r requirements.txt
 
@@ -33,8 +34,8 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: python main.py
 
-      - name: Save seen.db cache
-        uses: actions/cache@v4
+      - name: Upload seen database
+        uses: actions/upload-artifact@v4
         with:
+          name: seen-db
           path: seen.db
-          key: seen-db
