@@ -24,6 +24,8 @@ META_BASE = "https://opensky-network.org/api/metadata/aircraft/icao"
 
 DB_PATH = "seen.db"
 
+COOLDOWN = 6 * 3600
+
 def get_db():
     return sqlite3.connect(DB_PATH)
 
@@ -32,7 +34,8 @@ def init_db():
         con.execute(
             """
             CREATE TABLE IF NOT EXISTS seen (
-                icao24 TEXT PRIMARY KEY
+                icao24 TEXT PRIMARY KEY,
+                last_alert INTEGER
             )
             """
         )
@@ -75,12 +78,23 @@ def get_cached_meta(icao):
 
 def already_seen(icao):
     with get_db() as con:
-        cur = con.execute("SELECT 1 FROM seen WHERE icao24=?", (icao,))
-        return cur.fetchone() is not None
+        cur = con.execute(
+            "SELECT last_alert FROM seen WHERE icao24=?",
+            (icao,),
+        )
+        row = cur.fetchone()
+
+    if not row:
+        return False
+
+    return time.time() - row[0] < COOLDOWN
 
 def mark_seen(icao):
     with get_db() as con:
-        con.execute("INSERT OR IGNORE INTO seen VALUES (?)", (icao,))
+        con.execute(
+            "INSERT OR REPLACE INTO seen VALUES (?,?)",
+            (icao, int(time.time())),
+        )
 
 def fetch_recent():
     r = requests.get(BASE, timeout=10)
