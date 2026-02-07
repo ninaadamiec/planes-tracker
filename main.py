@@ -39,17 +39,15 @@ def init_db():
             )
             """
         )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS aircraft (
-                icao24 TEXT PRIMARY KEY,
-                typecode TEXT,
-                model TEXT,
-                operator TEXT
-            )
-            """
-        )
 
+        cols = {
+            row[1]
+            for row in con.execute("PRAGMA table_info(seen)")
+        }
+
+        if "last_alert" not in cols:
+            con.execute("ALTER TABLE seen ADD COLUMN last_alert INTEGER")
+            
 def cache_aircraft_meta(icao, meta):
     with get_db() as con:
         con.execute(
