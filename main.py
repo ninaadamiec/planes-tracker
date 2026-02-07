@@ -24,8 +24,6 @@ META_BASE = "https://opensky-network.org/api/metadata/aircraft/icao"
 
 DB_PATH = "seen.db"
 
-COOLDOWN = 6 * 3600
-
 def get_db():
     return sqlite3.connect(DB_PATH)
 
@@ -75,6 +73,8 @@ def get_cached_meta(icao):
     return None
 
 def already_seen(icao):
+    COOLDOWN = 6 * 3600  # 6 godzin
+
     with get_db() as con:
         cur = con.execute(
             "SELECT last_alert FROM seen WHERE icao24=?",
@@ -82,7 +82,7 @@ def already_seen(icao):
         )
         row = cur.fetchone()
 
-    if not row:
+    if not row or row[0] is None:
         return False
 
     return time.time() - row[0] < COOLDOWN
@@ -90,7 +90,7 @@ def already_seen(icao):
 def mark_seen(icao):
     with get_db() as con:
         con.execute(
-            "INSERT OR REPLACE INTO seen VALUES (?,?)",
+            "INSERT OR REPLACE INTO seen(icao24, last_alert) VALUES (?,?)",
             (icao, int(time.time())),
         )
 
