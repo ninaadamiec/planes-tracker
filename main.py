@@ -144,6 +144,11 @@ def main():
         spi = f[15]
         position_source = f[16]
 
+        if callsign:
+            flightaware_url = f"https://www.flightaware.com/live/flight/{callsign}"
+        else:
+            flightaware_url = "N/A"
+
         is_cmb = callsign.startswith(CALLSIGN_PREFIX)
         meta = get_cached_meta(icao)
         if not meta and is_cmb:
@@ -174,6 +179,7 @@ def main():
         TAKEOFF detected
         
         Callsign: {callsign}
+        FlightAware: {flightaware_url if flightaware_url else "N/A"}
         ICAO24: {icao}
         Origin country: {origin_country}
         
