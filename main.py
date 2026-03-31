@@ -20,7 +20,6 @@ EMAIL_TO = os.environ["EMAIL_TO"]
 EMAIL_FROM = os.environ["EMAIL_FROM"]
 
 BASE = "https://opensky-network.org/api/states/all"
-META_BASE = "https://opensky-network.org/api/metadata/aircraft/icao"
 
 DB_PATH = "seen.db"
 
@@ -45,32 +44,6 @@ def init_db():
 
         if "last_alert" not in cols:
             con.execute("ALTER TABLE seen ADD COLUMN last_alert INTEGER")
-            
-def cache_aircraft_meta(icao, meta):
-    with get_db() as con:
-        con.execute(
-            """
-            INSERT OR REPLACE INTO aircraft
-            VALUES (?,?,?,?)
-            """,
-            (
-                icao,
-                meta.get("typecode"),
-                meta.get("model"),
-                meta.get("operator"),
-            ),
-        )
-
-def get_cached_meta(icao):
-    with get_db() as con:
-        cur = con.execute(
-            "SELECT typecode, model, operator FROM aircraft WHERE icao24=?",
-            (icao,),
-        )
-        row = cur.fetchone()
-    if row:
-        return {"typecode": row[0], "model": row[1], "operator": row[2]}
-    return None
 
 def already_seen(icao):
     COOLDOWN = 6 * 3600  # 6 godzin
@@ -98,19 +71,6 @@ def fetch_recent():
     r = requests.get(BASE, timeout=10)
     r.raise_for_status()
     return r.json()
-
-def fetch_aircraft_meta(icao):
-    try:
-        r = requests.get(
-            f"{META_BASE}/{icao}",
-            auth=(OPENSKY_USER, OPENSKY_PASS),
-            timeout=10,
-        )
-        if r.status_code == 200:
-            return r.json()
-    except Exception:
-        pass
-    return None
 
 def send_mail(subject, body):
     msg = EmailMessage()
@@ -150,27 +110,26 @@ def main():
             flightaware_url = "N/A"
 
         is_cmb = callsign.startswith(CALLSIGN_PREFIX)
-        meta = get_cached_meta(icao)
-        if not meta and is_cmb:
-            meta = fetch_aircraft_meta(icao)
-            if meta:
-                cache_aircraft_meta(icao, meta)
-    
+        
         is_an124 = False
-        if meta:
-            typecode = (meta.get("typecode") or "").upper()
-            if typecode in AN124_TYPECODES:
-                is_an124 = True
-
+        
+        callsign_upper = callsign.upper()
+        
+        is_an124 = (
+            callsign_upper.startswith("ADB")
+            or callsign_upper.startswith("VDA")
+            or callsign_upper.startswith("CVK")
+        )
+        
         if not (is_cmb or is_an124):
             continue
-
+        
         if already_seen(icao):
             continue
-
+        
         if on_ground or velocity is None or velocity < MIN_SPEED:
             continue
-
+        
         mark_seen(icao)
 
         maps_url = f"https://www.google.com/maps/search/?api=1&query={latitude},{longitude}"
