@@ -117,7 +117,6 @@ def main():
         
         is_an124 = (
             callsign_upper.startswith("ADB")
-            or callsign_upper.startswith("VDA")
             or callsign_upper.startswith("CVK")
         )
         
