@@ -170,9 +170,9 @@ def main():
         """
 
         subject = (
-            f"Antonov {callsign} departed"
+            f"[FlightTracker] Antonov {callsign} departed"
             if is_an124
-            else f"{callsign} departed"
+            else f"[FlightTracker] {callsign} departed"
         )
 
         send_mail(subject, body)
