@@ -68,9 +68,17 @@ def mark_seen(icao):
         )
 
 def fetch_recent():
-    r = requests.get(BASE, timeout=10)
-    r.raise_for_status()
-    return r.json()
+    for attempt in range(3):
+        try:
+            r = requests.get(BASE, timeout=15)
+            r.raise_for_status()
+            return r.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Attempt {attempt+1} failed: {e}")
+            time.sleep(5)
+
+    print("OpenSky API unavailable, skipping this run.")
+    return None
 
 def send_mail(subject, body):
     msg = EmailMessage()
@@ -86,6 +94,9 @@ def send_mail(subject, body):
 def main():
     init_db()
     data = fetch_recent()
+    if not data:
+        return
+        
     flights = data.get("states", [])
 
     for f in flights:
@@ -134,16 +145,12 @@ def main():
         maps_url = f"https://www.google.com/maps/search/?api=1&query={latitude},{longitude}"
 
         body = f"""
-        TAKEOFF detected
-        
         Callsign: {callsign}
         FlightAware: {flightaware_url if flightaware_url else "N/A"}
         ICAO24: {icao}
         Origin country: {origin_country}
         
         Position:
-          Latitude: {latitude}
-          Longitude: {longitude}
           Map: {maps_url}
         
         Altitude:
@@ -163,9 +170,9 @@ def main():
         """
 
         subject = (
-            "Antonov An-124 detected"
+            f"Antonov {callsign} departed"
             if is_an124
-            else "CMB aircraft departed"
+            else f"{callsign} departed"
         )
 
         send_mail(subject, body)
