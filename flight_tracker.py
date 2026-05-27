@@ -27,8 +27,8 @@ STATE_FILE = "seen_flights.json"
 STATE_RETENTION_DAYS = 7
 
 # Credentials & config from GitHub Actions secrets
-OPENSKY_USER = os.environ.get("OPENSKY_USERNAME", "")
-OPENSKY_PASS = os.environ.get("OPENSKY_PASSWORD", "")
+OPENSKY_USER = os.environ.get("OPENSKY_USER", "")
+OPENSKY_PASS = os.environ.get("OPENSKY_PASS", "")
 EMAIL_FROM   = os.environ.get("EMAIL_FROM", "")
 EMAIL_TO     = os.environ.get("EMAIL_TO", "")
 EMAIL_PASS   = os.environ.get("EMAIL_PASSWORD", "")
