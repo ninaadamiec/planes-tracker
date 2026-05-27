@@ -164,7 +164,7 @@ def build_email_html(
     adsbx_url = f"https://globe.adsbexchange.com/?icao={icao24}"
     osn_url   = f"https://opensky-network.org/aircraft-profile?icao24={icao24}"
 
-    subject = f"✈️ {callsign} → {arr} (Polska)"
+    subject = f"✈️[FlightTracker] {callsign} → {arr} (Polska)"
 
     html = f"""<!DOCTYPE html>
 <html lang="pl"><head><meta charset="utf-8">
