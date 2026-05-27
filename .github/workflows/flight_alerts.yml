@@ -1,0 +1,53 @@
+name: Flight Alerts
+
+on:
+  # Fallback schedule – GitHub może opóźniać/pomijać runy na prywatnych repo.
+  # Główny trigger to cron-job.org przez workflow_dispatch (patrz README).
+  schedule:
+    - cron: '*/20 * * * *'   # co 20 minut (bezpieczny limit dla prywatnego repo)
+  workflow_dispatch:           # trigger z cron-job.org lub ręcznie z panelu GitHub
+
+# Potrzebne do commitowania seen_flights.json z powrotem do repo
+permissions:
+  contents: write
+
+jobs:
+  check-flights:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repozytorium
+        uses: actions/checkout@v4
+        with:
+          # Używamy domyślnego GITHUB_TOKEN – nie trzeba nic konfigurować
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ustaw Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Zainstaluj zależności
+        run: pip install -r requirements.txt
+
+      - name: Uruchom flight tracker
+        env:
+          OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
+          OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
+          EMAIL_FROM:       ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO:         ${{ secrets.EMAIL_TO }}
+          EMAIL_PASSWORD:   ${{ secrets.EMAIL_PASSWORD }}
+          # Opcjonalnie zmień SMTP (domyślnie Gmail):
+          # SMTP_HOST: smtp.gmail.com
+          # SMTP_PORT: 465
+        run: python flight_tracker.py
+
+      - name: Zapisz stan (seen_flights.json) do repo
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen_flights.json
+          # Commituj tylko jeśli plik się zmienił; [skip ci] zapobiega pętli triggerów
+          git diff --cached --quiet || git commit -m "chore: update seen flights state [skip ci]"
+          git push
