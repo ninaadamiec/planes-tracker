@@ -18,13 +18,13 @@ jobs:
 
     steps:
       - name: Checkout repozytorium
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Używamy domyślnego GITHUB_TOKEN – nie trzeba nic konfigurować
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Ustaw Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
