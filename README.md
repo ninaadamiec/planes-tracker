@@ -1,1 +1,12 @@
-A simple hobby project that monitors aircraft with callsigns starting with 'CMB' (US Transportation Command) or of the An-124 Rusłan model, and sends emails when they take off.
+## ✈️ Flight Tracker
+
+A simple hobby project that monitors selected flight callsigns and sends an email alert whenever an aircraft is heading to Poland.
+
+### Tracked Callsigns
+
+| Prefix | Operator |
+|--------|------------|
+| `CMB` | US Transportation Command |
+| `ADB` | Antonov Airlines |
+| `VDA` | Volga-Dnepr Airlines |
+| `CVK` | Cavok Air |
