@@ -156,7 +156,7 @@ def get_flight_record(icao24: str) -> dict | None:
 
 # ─── Aviationstack API (fallback) ────────────────────────────────────────────
 
-def as_get_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
+def as_get_destination(callsign: str) -> tuple[str, str, int | None] | tuple[None, None, None]:
     """
     Odpytaj aviationstack.com o cel lotu po callsignie (numerze lotu).
     Darmowy tier: 1000 zapytań/miesiąc, bez karty kredytowej.
@@ -164,7 +164,7 @@ def as_get_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
     Zwraca (dep_icao, arr_icao) lub (None, None).
     """
     if not AVIATIONSTACK_KEY:
-        return None, None
+        return None, None, None
 
     url = "https://api.aviationstack.com/v1/flights"
     params = {
@@ -180,7 +180,7 @@ def as_get_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
 
         if data.get("error"):
             print(f"[as] Błąd aviationstack: {data['error'].get('message', '?')}")
-            return None, None
+            return None, None, None
 
         flights = (data.get("data") or [])
         if not flights:
@@ -192,22 +192,32 @@ def as_get_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
 
         if not flights:
             print(f"[as] aviationstack: brak lotu {callsign}")
-            return None, None
+            return None, None, None
 
         fl  = flights[0]
         arr = ((fl.get("arrival") or {}).get("icao") or "").strip().upper()
         dep = ((fl.get("departure") or {}).get("icao") or "").strip().upper()
+        eta_iso = ((fl.get("arrival") or {}).get("estimated") or
+                   (fl.get("arrival") or {}).get("scheduled") or "")
 
         if arr:
             print(f"[as] aviationstack: {callsign} → {dep or '?'} → {arr}")
-            return dep, arr
+            # Zamień ISO timestamp na unix int jeśli dostępny
+            eta_ts = None
+            if eta_iso:
+                try:
+                    from datetime import datetime as _dt
+                    eta_ts = int(_dt.fromisoformat(eta_iso.replace("Z", "+00:00")).timestamp())
+                except Exception:
+                    pass
+            return dep, arr, eta_ts
 
         print(f"[as] aviationstack: brak lotniska docelowego dla {callsign}")
-        return None, None
+        return None, None, None
 
     except Exception as e:
         print(f"[as] Błąd: {e}")
-        return None, None
+        return None, None, None
 
 
 
@@ -317,6 +327,7 @@ def build_email_html(
     lat, lon, alt_m, speed_ms, first_seen_ts,
     pending_since: str | None = None,
     dest_source: str = "OpenSky",
+    eta_ts: int | None = None,
 ) -> tuple[str, str]:
 
     alt_ft  = f"{int(alt_m * 3.28084):,} ft"    if alt_m    else "–"
@@ -325,6 +336,10 @@ def build_email_html(
     dep_time = (
         datetime.fromtimestamp(first_seen_ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         if first_seen_ts else "–"
+    )
+    eta_str = (
+        datetime.fromtimestamp(eta_ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        if eta_ts else "–"
     )
     now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
@@ -373,6 +388,10 @@ def build_email_html(
           <td style="padding:9px 12px;border:1px solid #e5e7eb">{dep_time}</td>
         </tr>
         <tr>
+          <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Przylot (est.)</td>
+          <td style="padding:9px 12px;border:1px solid #e5e7eb">{eta_str}</td>
+        </tr>
+        <tr>
           <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Pozycja</td>
           <td style="padding:9px 12px;border:1px solid #e5e7eb">{pos_str}</td>
         </tr>
@@ -387,11 +406,14 @@ def build_email_html(
         {pending_note}
       </table>
       <div style="margin-top:20px">
+        <a href="https://www.flightaware.com/live/flight/{callsign}"
+           style="display:inline-block;background:#1a56db;color:#fff;padding:9px 18px;
+                  text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">FlightAware</a>
         <a href="https://www.flightradar24.com/{callsign}"
            style="display:inline-block;background:#e26f24;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">FlightRadar24</a>
         <a href="https://globe.adsbexchange.com/?icao={icao24}"
-           style="display:inline-block;background:#1a56db;color:#fff;padding:9px 18px;
+           style="display:inline-block;background:#059669;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">ADS-B Exchange</a>
         <a href="https://www.radarbox.com/data/registration?icao24={icao24}"
            style="display:inline-block;background:#374151;color:#fff;padding:9px 18px;
@@ -418,7 +440,8 @@ def send_email(subject: str, html_body: str) -> None:
 
 
 def try_send_alert(callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms,
-                   first_seen, state, pending_since=None, dest_source="OpenSky") -> str:
+                   first_seen, state, pending_since=None, dest_source="OpenSky",
+                   eta_ts=None) -> str:
     """Wyślij alert. Zwraca 'sent', 'dedup' lub 'error'."""
     if first_seen:
         dep_date = datetime.fromtimestamp(first_seen, tz=timezone.utc).strftime("%Y-%m-%d")
@@ -434,7 +457,7 @@ def try_send_alert(callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms,
     print(f"[{callsign}] 🚨 ALERT: {dep or '?'} → {arr} [{dest_source}] — wysyłam email...")
     subject, html = build_email_html(
         callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen,
-        pending_since, dest_source=dest_source
+        pending_since, dest_source=dest_source, eta_ts=eta_ts
     )
     try:
         send_email(subject, html)
@@ -479,11 +502,13 @@ def main() -> None:
                 print(f"[pending] {callsign} — OpenSky niedostępny lub brak rekordu, próbuję fallbacki...")
 
             # Fallbacki gdy OpenSky nie dał celu (lub w ogóle nie odpowiedział)
+            eta_ts = flight.get("lastSeen") if flight else None
             if not arr:
-                as_dep, as_arr = as_get_destination(callsign)
+                as_dep, as_arr, as_eta = as_get_destination(callsign)
                 if as_arr:
                     dep = as_dep or dep
                     arr = as_arr
+                    eta_ts = as_eta or eta_ts
                     dest_src = "aviationstack"
                 else:
                     fa_dep, fa_arr = fa_scrape_destination(callsign)
@@ -506,7 +531,8 @@ def main() -> None:
                 callsign, icao24, dep, arr,
                 info.get("lat"), info.get("lon"),
                 info.get("alt_m"), info.get("speed_ms"),
-                first_seen, state, pending_since=pending_since, dest_source=dest_src
+                first_seen, state, pending_since=pending_since, dest_source=dest_src,
+                eta_ts=eta_ts
             )
             if result in ("sent", "dedup"):
                 to_remove.append(icao24)
@@ -570,15 +596,18 @@ def main() -> None:
         arr = (flight.get("estArrivalAirport") or "").strip().upper()
         dep = (flight.get("estDepartureAirport") or "").strip().upper()
         first_seen = flight.get("firstSeen")
+        eta_ts = flight.get("lastSeen")  # OpenSky: przybliżony czas ostatniego kontaktu
 
         print(f"[{callsign}] Trasa: {dep or '?'} → {arr or '?'}")
 
+        as_arr = None
         if not arr:
             # Fallback 1: aviationstack
-            as_dep, as_arr = as_get_destination(callsign)
+            as_dep, as_arr, as_eta = as_get_destination(callsign)
             if as_arr:
                 dep = as_dep or dep
                 arr = as_arr
+                eta_ts = as_eta or eta_ts
             else:
                 # Fallback 2: scrape publicznej strony FlightAware
                 fa_dep, fa_arr = fa_scrape_destination(callsign)
@@ -608,7 +637,7 @@ def main() -> None:
 
         result = try_send_alert(
             callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen, state,
-            dest_source=src
+            dest_source=src, eta_ts=eta_ts
         )
         if result == "sent":
             alerts_sent += 1
