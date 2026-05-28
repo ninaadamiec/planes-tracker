@@ -15,6 +15,13 @@ from email.mime.multipart import MIMEMultipart
 # ─── Configuration ────────────────────────────────────────────────────────────
 
 CALLSIGN_PREFIXES = ["CMB", "ADB", "VDA", "CVK"]
+
+# Te prefiksy alertują zawsze — niezależnie od celu lotu
+ALWAYS_ALERT_PREFIXES = ["ADB"]
+
+
+def always_alert(callsign: str) -> bool:
+    return any(callsign.startswith(p) for p in ALWAYS_ALERT_PREFIXES)
 POLAND_ICAO_PREFIX = "EP"
 STATE_FILE = "seen_flights.json"
 STATE_RETENTION_DAYS = 7
@@ -218,25 +225,37 @@ _FA_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-# Wzorce do szukania ICAO lotniska docelowego w HTML/JSON FlightAware
-_FA_PATTERNS = [
-    # JSON embedded w stronie: "destination":{"icao":"EPWA",...}
-    r'"destination"\s*:\s*\{[^}]*"icao"\s*:\s*"([A-Z]{4})"',
-    # alternatywna kolejność kluczy
-    r'"icao"\s*:\s*"([A-Z]{4})"[^}]*"[^"]*destination[^"]*"',
-    # data-icao na elemencie destination
-    r'destination[^>]*data-icao[^>]*=\s*["\']([A-Z]{4})["\']',
-    # flightPageDestination span
-    r'flightPageDestination[^>]*>([A-Z]{4})<',
-    # /airports/EPWA/... link w sekcji destination
-    r'destination[^<]{0,300}/airports/([A-Z]{4})/',
-]
+# Szukamy bloku JSON z danymi lotu osadzonego w stronie FA
+# Przykładowa struktura: "destination":{"icao":"EPWA","iata":"WAW",...}
+_FA_DEST_JSON   = re.compile(r'"destination"\s*:\s*\{[^}]{0,300}"icao"\s*:\s*"([A-Z]{4})"', re.S)
+_FA_ORIGIN_JSON = re.compile(r'"origin"\s*:\s*\{[^}]{0,300}"icao"\s*:\s*"([A-Z]{4})"', re.S)
 
-_FA_DEP_PATTERNS = [
-    r'"origin"\s*:\s*\{[^}]*"icao"\s*:\s*"([A-Z]{4})"',
-    r'flightPageOrigin[^>]*>([A-Z]{4})<',
-    r'origin[^<]{0,300}/airports/([A-Z]{4})/',
-]
+# Fallback: linki /airports/ICAO/ poprzedzone słowem destination/arrival w pobliżu
+# Używamy lookahead żeby mieć pewność że to sekcja przylotu, nie odlotu
+_FA_DEST_LINK   = re.compile(
+    r'(?:destination|arrival)[^/]{0,200}/airports/([A-Z]{4})/',
+    re.S | re.I
+)
+_FA_ORIGIN_LINK = re.compile(
+    r'(?:origin|departure)[^/]{0,200}/airports/([A-Z]{4})/',
+    re.S | re.I
+)
+
+
+def _extract_icao(html: str, dest_patterns, origin_patterns) -> tuple[str, str]:
+    """Wyciąga (dep, arr) z HTML. Zwraca ('', '') jeśli nie znaleziono."""
+    arr = dep = ""
+    for pat in dest_patterns:
+        m = pat.search(html)
+        if m and m.group(1).isalpha():
+            arr = m.group(1).upper()
+            break
+    for pat in origin_patterns:
+        m = pat.search(html)
+        if m and m.group(1).isalpha():
+            dep = m.group(1).upper()
+            break
+    return dep, arr
 
 
 def fa_scrape_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
@@ -261,36 +280,31 @@ def fa_scrape_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
 
     html = r.text
 
-    arr = None
-    for pattern in _FA_PATTERNS:
-        m = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
-        if m:
-            arr = m.group(1).upper()
-            # Odfiltruj fałszywe trafienia (kody które nie są lotniskami)
-            if len(arr) == 4 and arr.isalpha():
-                break
-            arr = None
+    # Próba 1: JSON embedded w stronie (najbardziej wiarygodne)
+    dep, arr = _extract_icao(
+        html,
+        [_FA_DEST_JSON],
+        [_FA_ORIGIN_JSON],
+    )
 
-    dep = None
-    for pattern in _FA_DEP_PATTERNS:
-        m = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
-        if m:
-            dep = m.group(1).upper()
-            if len(dep) == 4 and dep.isalpha():
-                break
-            dep = None
+    # Próba 2: linki /airports/ z kontekstem destination/origin
+    if not arr:
+        dep2, arr2 = _extract_icao(
+            html,
+            [_FA_DEST_LINK],
+            [_FA_ORIGIN_LINK],
+        )
+        arr = arr2
+        dep = dep2 or dep
+
+    # Sanity check: arr nie może być tym samym co dep
+    if arr and arr == dep:
+        print(f"[fa_scrape] arr == dep ({arr}) — odrzucam wynik (błąd scrapera)")
+        return None, None
 
     if arr:
         print(f"[fa_scrape] FlightAware (scrape): {callsign} → {dep or '?'} → {arr}")
-        return dep, arr
-
-    # Ostatnia szansa: szukaj kodu EP** gdziekolwiek na stronie
-    # (FlightAware może renderować EPWA/EPKK/etc. w różnych miejscach)
-    ep_codes = re.findall(r'\bEP[A-Z]{2}\b', html)
-    if ep_codes:
-        arr = ep_codes[0]
-        print(f"[fa_scrape] Znaleziono polski kod lotniska na stronie FA: {arr}")
-        return dep, arr
+        return dep or None, arr
 
     print(f"[fa_scrape] Nie udało się wyciągnąć celu z FlightAware dla {callsign}")
     return None, None
@@ -324,7 +338,8 @@ def build_email_html(
           </td>
         </tr>"""
 
-    subject = f"✈️ [FlightTracker] {callsign} → {arr} (Polska)"
+    dest_label = f"{arr} (Polska)" if arr.startswith(POLAND_ICAO_PREFIX) else (arr or "cel nieznany")
+    subject = f"✈️ [FlightTracker] {callsign} → {dest_label}"
     source_color = "#1a56db" if dest_source == "OpenSky" else "#e26f24"
     source_badge = f'<span style="background:{source_color};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">{dest_source}</span>'
     html = f"""<!DOCTYPE html>
@@ -480,7 +495,7 @@ def main() -> None:
                         print(f"[pending] {callsign} — cel nieznany (OpenSky + aviationstack + FA)")
                         continue
 
-            if not arr.startswith(POLAND_ICAO_PREFIX):
+            if not arr.startswith(POLAND_ICAO_PREFIX) and not always_alert(callsign):
                 print(f"[pending] {callsign} — cel {arr} to nie Polska, usuwam z kolejki")
                 to_remove.append(icao24)
                 continue
@@ -583,8 +598,8 @@ def main() -> None:
                     }
                     continue
 
-        if not arr.startswith(POLAND_ICAO_PREFIX):
-            print(f"[{callsign}] Cel nie jest Polska — pomijam")
+        if not arr.startswith(POLAND_ICAO_PREFIX) and not always_alert(callsign):
+            print(f"[{callsign}] Cel {arr or '?'} to nie Polska — pomijam")
             continue
 
         # Ustal źródło danych o celu
