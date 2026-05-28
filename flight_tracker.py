@@ -22,13 +22,14 @@ STATE_RETENTION_DAYS = 7
 # Jak długo (godziny) trzymamy lot w kolejce pending zanim odpuścimy
 PENDING_MAX_HOURS = 26
 
-OPENSKY_USER = os.environ.get("OPENSKY_USERNAME", "")
-OPENSKY_PASS = os.environ.get("OPENSKY_PASSWORD", "")
-EMAIL_FROM   = os.environ.get("EMAIL_FROM", "")
-EMAIL_TO     = os.environ.get("EMAIL_TO", "")
-EMAIL_PASS   = os.environ.get("EMAIL_PASSWORD", "")
-SMTP_HOST    = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT    = int(os.environ.get("SMTP_PORT", "465"))
+OPENSKY_USER   = os.environ.get("OPENSKY_USERNAME", "")
+OPENSKY_PASS   = os.environ.get("OPENSKY_PASSWORD", "")
+AVIATIONSTACK_KEY = os.environ.get("AVIATIONSTACK_KEY", "")   # darmowe: aviationstack.com
+EMAIL_FROM     = os.environ.get("EMAIL_FROM", "")
+EMAIL_TO       = os.environ.get("EMAIL_TO", "")
+EMAIL_PASS     = os.environ.get("EMAIL_PASSWORD", "")
+SMTP_HOST      = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT      = int(os.environ.get("SMTP_PORT", "465"))
 
 # ─── Polish airports lookup ───────────────────────────────────────────────────
 
@@ -146,12 +147,70 @@ def get_flight_record(icao24: str) -> dict | None:
     return None
 
 
+# ─── Aviationstack API (fallback) ────────────────────────────────────────────
+
+def as_get_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
+    """
+    Odpytaj aviationstack.com o cel lotu po callsignie (numerze lotu).
+    Darmowy tier: 1000 zapytań/miesiąc, bez karty kredytowej.
+    Rejestracja: https://aviationstack.com/signup/free
+    Zwraca (dep_icao, arr_icao) lub (None, None).
+    """
+    if not AVIATIONSTACK_KEY:
+        return None, None
+
+    url = "https://api.aviationstack.com/v1/flights"
+    params = {
+        "access_key": AVIATIONSTACK_KEY,
+        "flight_icao": callsign,   # np. CMB534
+        "flight_status": "active",
+        "limit": 1,
+    }
+    try:
+        r = SESSION.get(url, params=params, timeout=15)
+        r.raise_for_status()
+        data = r.json()
+
+        if data.get("error"):
+            print(f"[as] Błąd aviationstack: {data['error'].get('message', '?')}")
+            return None, None
+
+        flights = (data.get("data") or [])
+        if not flights:
+            # Spróbuj bez flight_status – lot może być już na finałowym podejściu
+            params.pop("flight_status")
+            r2 = SESSION.get(url, params=params, timeout=15)
+            r2.raise_for_status()
+            flights = (r2.json().get("data") or [])
+
+        if not flights:
+            print(f"[as] aviationstack: brak lotu {callsign}")
+            return None, None
+
+        fl  = flights[0]
+        arr = ((fl.get("arrival") or {}).get("icao") or "").strip().upper()
+        dep = ((fl.get("departure") or {}).get("icao") or "").strip().upper()
+
+        if arr:
+            print(f"[as] aviationstack: {callsign} → {dep or '?'} → {arr}")
+            return dep, arr
+
+        print(f"[as] aviationstack: brak lotniska docelowego dla {callsign}")
+        return None, None
+
+    except Exception as e:
+        print(f"[as] Błąd: {e}")
+        return None, None
+
+
+
 # ─── Email ────────────────────────────────────────────────────────────────────
 
 def build_email_html(
     callsign: str, icao24: str, dep: str, arr: str,
     lat, lon, alt_m, speed_ms, first_seen_ts,
     pending_since: str | None = None,
+    dest_source: str = "OpenSky",
 ) -> tuple[str, str]:
 
     alt_ft  = f"{int(alt_m * 3.28084):,} ft"    if alt_m    else "–"
@@ -174,6 +233,8 @@ def build_email_html(
         </tr>"""
 
     subject = f"✈️[FlightTracker] {callsign} → {arr} (Polska)"
+    source_color = "#1a56db" if dest_source == "OpenSky" else "#e26f24"
+    source_badge = f'<span style="background:{source_color};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">{dest_source}</span>'
     html = f"""<!DOCTYPE html>
 <html lang="pl"><head><meta charset="utf-8"><title>Alert lotniczy</title></head>
 <body style="font-family:Arial,sans-serif;background:#f9fafb;margin:0;padding:20px">
@@ -198,7 +259,7 @@ def build_email_html(
         </tr>
         <tr>
           <td style="padding:9px 12px;background:#dcfce7;font-weight:bold">Dokąd 🇵🇱</td>
-          <td style="padding:9px 12px;border:1px solid #e5e7eb"><strong>{airport_label(arr)}</strong></td>
+          <td style="padding:9px 12px;border:1px solid #e5e7eb"><strong>{airport_label(arr)}</strong> {source_badge}</td>
         </tr>
         <tr>
           <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Wylot (est.)</td>
@@ -250,7 +311,7 @@ def send_email(subject: str, html_body: str) -> None:
 
 
 def try_send_alert(callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms,
-                   first_seen, state, pending_since=None) -> bool:
+                   first_seen, state, pending_since=None, dest_source="OpenSky") -> bool:
     """Wyślij alert i dodaj do seen. Zwraca True jeśli sukces."""
     if first_seen:
         dep_date = datetime.fromtimestamp(first_seen, tz=timezone.utc).strftime("%Y-%m-%d")
@@ -263,9 +324,10 @@ def try_send_alert(callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms,
         print(f"[{callsign}] Już wysłano alert dla tego lotu — pomijam")
         return True  # traktuj jako sukces żeby usunąć z pending
 
-    print(f"[{callsign}] 🚨 ALERT: {dep or '?'} → {arr} — wysyłam email...")
+    print(f"[{callsign}] 🚨 ALERT: {dep or '?'} → {arr} [{dest_source}] — wysyłam email...")
     subject, html = build_email_html(
-        callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen, pending_since
+        callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen,
+        pending_since, dest_source=dest_source
     )
     try:
         send_email(subject, html)
@@ -309,8 +371,15 @@ def main() -> None:
             print(f"[pending] {callsign} — trasa: {dep or '?'} → {arr or '?'}")
 
             if not arr:
-                print(f"[pending] {callsign} — cel nadal nieznany")
-                continue
+                # Fallback: zapytaj aviationstack o cel
+                as_dep, as_arr = as_get_destination(callsign)
+                if as_arr:
+                    dep = as_dep or dep
+                    arr = as_arr
+                    print(f"[pending] {callsign} — cel z aviationstack: {dep or '?'} → {arr}")
+                else:
+                    print(f"[pending] {callsign} — cel nadal nieznany (OpenSky + FA)")
+                    continue
 
             if not arr.startswith(POLAND_ICAO_PREFIX):
                 print(f"[pending] {callsign} — cel nie jest Polska, usuwam z kolejki")
@@ -319,11 +388,13 @@ def main() -> None:
 
             # Cel to Polska!
             pending_since = info["first_added"][:16].replace("T", " ") + " UTC"
+            osn_arr = (flight.get("estArrivalAirport") or "").strip().upper()
+            src = "OpenSky" if osn_arr else "aviationstack"
             ok = try_send_alert(
                 callsign, icao24, dep, arr,
                 info.get("lat"), info.get("lon"),
                 info.get("alt_m"), info.get("speed_ms"),
-                first_seen, state, pending_since=pending_since
+                first_seen, state, pending_since=pending_since, dest_source=src
             )
             if ok:
                 to_remove.append(icao24)
@@ -390,24 +461,33 @@ def main() -> None:
         print(f"[{callsign}] Trasa: {dep or '?'} → {arr or '?'}")
 
         if not arr:
-            # Lot znaleziony, ale bez celu — dodaj do pending
-            print(f"[{callsign}] Cel nieznany — dodaję do pending")
-            state["pending"][icao24] = {
-                "callsign":    callsign,
-                "first_added": datetime.now(timezone.utc).isoformat(),
-                "lat":         lat,
-                "lon":         lon,
-                "alt_m":       alt_m,
-                "speed_ms":    speed_ms,
-            }
-            continue
+            # Fallback: zapytaj aviationstack o cel
+            as_dep, as_arr = as_get_destination(callsign)
+            if as_arr:
+                dep = as_dep or dep
+                arr = as_arr
+                print(f"[{callsign}] Cel z aviationstack: {dep or '?'} → {arr}")
+            else:
+                # Oba źródła nie znają celu — dodaj do pending
+                print(f"[{callsign}] Cel nieznany (OpenSky + FA) — dodaję do pending")
+                state["pending"][icao24] = {
+                    "callsign":    callsign,
+                    "first_added": datetime.now(timezone.utc).isoformat(),
+                    "lat":         lat,
+                    "lon":         lon,
+                    "alt_m":       alt_m,
+                    "speed_ms":    speed_ms,
+                }
+                continue
 
         if not arr.startswith(POLAND_ICAO_PREFIX):
             print(f"[{callsign}] Cel nie jest Polska — pomijam")
             continue
 
+        src = "aviationstack" if not (flight.get("estArrivalAirport") or "") else "OpenSky"
         ok = try_send_alert(
-            callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen, state
+            callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen, state,
+            dest_source=src
         )
         if ok:
             alerts_sent += 1
