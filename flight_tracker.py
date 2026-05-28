@@ -106,11 +106,11 @@ def opensky_get(path: str, params: dict | None = None) -> dict | list | None:
     url = f"https://opensky-network.org/api{path}"
     auth = (OPENSKY_USER, OPENSKY_PASS) if OPENSKY_USER else None
     try:
-        r = SESSION.get(url, params=params, auth=auth, timeout=30)
+        r = SESSION.get(url, params=params, auth=auth, timeout=10)
         if r.status_code == 429:
             print(f"[api] Rate limited, sleeping 60s...")
             time.sleep(60)
-            r = SESSION.get(url, params=params, auth=auth, timeout=30)
+            r = SESSION.get(url, params=params, auth=auth, timeout=10)
         if r.status_code == 404:
             return None  # brak danych – nie loguj jako błąd
         r.raise_for_status()
