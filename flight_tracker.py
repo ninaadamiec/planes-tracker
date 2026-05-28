@@ -204,6 +204,98 @@ def as_get_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
 
 
 
+import re
+
+# ─── FlightAware public page scraper (bez API, bez rejestracji) ───────────────
+
+_FA_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+}
+
+# Wzorce do szukania ICAO lotniska docelowego w HTML/JSON FlightAware
+_FA_PATTERNS = [
+    # JSON embedded w stronie: "destination":{"icao":"EPWA",...}
+    r'"destination"\s*:\s*\{[^}]*"icao"\s*:\s*"([A-Z]{4})"',
+    # alternatywna kolejność kluczy
+    r'"icao"\s*:\s*"([A-Z]{4})"[^}]*"[^"]*destination[^"]*"',
+    # data-icao na elemencie destination
+    r'destination[^>]*data-icao[^>]*=\s*["\']([A-Z]{4})["\']',
+    # flightPageDestination span
+    r'flightPageDestination[^>]*>([A-Z]{4})<',
+    # /airports/EPWA/... link w sekcji destination
+    r'destination[^<]{0,300}/airports/([A-Z]{4})/',
+]
+
+_FA_DEP_PATTERNS = [
+    r'"origin"\s*:\s*\{[^}]*"icao"\s*:\s*"([A-Z]{4})"',
+    r'flightPageOrigin[^>]*>([A-Z]{4})<',
+    r'origin[^<]{0,300}/airports/([A-Z]{4})/',
+]
+
+
+def fa_scrape_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
+    """
+    Pobiera publiczną stronę FlightAware i wyciąga lotnisko docelowe (ICAO).
+    Nie wymaga API ani rejestracji.
+    Zwraca (dep_icao, arr_icao) lub (None, None).
+    """
+    url = f"https://www.flightaware.com/live/flight/{callsign}"
+    try:
+        r = SESSION.get(url, headers=_FA_HEADERS, timeout=20)
+        if r.status_code == 404:
+            print(f"[fa_scrape] Brak lotu {callsign} na FlightAware")
+            return None, None
+        if r.status_code in (403, 429):
+            print(f"[fa_scrape] FlightAware zablokował żądanie ({r.status_code})")
+            return None, None
+        r.raise_for_status()
+    except Exception as e:
+        print(f"[fa_scrape] Błąd połączenia: {e}")
+        return None, None
+
+    html = r.text
+
+    arr = None
+    for pattern in _FA_PATTERNS:
+        m = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
+        if m:
+            arr = m.group(1).upper()
+            # Odfiltruj fałszywe trafienia (kody które nie są lotniskami)
+            if len(arr) == 4 and arr.isalpha():
+                break
+            arr = None
+
+    dep = None
+    for pattern in _FA_DEP_PATTERNS:
+        m = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
+        if m:
+            dep = m.group(1).upper()
+            if len(dep) == 4 and dep.isalpha():
+                break
+            dep = None
+
+    if arr:
+        print(f"[fa_scrape] FlightAware (scrape): {callsign} → {dep or '?'} → {arr}")
+        return dep, arr
+
+    # Ostatnia szansa: szukaj kodu EP** gdziekolwiek na stronie
+    # (FlightAware może renderować EPWA/EPKK/etc. w różnych miejscach)
+    ep_codes = re.findall(r'\bEP[A-Z]{2}\b', html)
+    if ep_codes:
+        arr = ep_codes[0]
+        print(f"[fa_scrape] Znaleziono polski kod lotniska na stronie FA: {arr}")
+        return dep, arr
+
+    print(f"[fa_scrape] Nie udało się wyciągnąć celu z FlightAware dla {callsign}")
+    return None, None
+
+
 # ─── Email ────────────────────────────────────────────────────────────────────
 
 def build_email_html(
@@ -371,15 +463,20 @@ def main() -> None:
             print(f"[pending] {callsign} — trasa: {dep or '?'} → {arr or '?'}")
 
             if not arr:
-                # Fallback: zapytaj aviationstack o cel
+                # Fallback 1: aviationstack
                 as_dep, as_arr = as_get_destination(callsign)
                 if as_arr:
                     dep = as_dep or dep
                     arr = as_arr
-                    print(f"[pending] {callsign} — cel z aviationstack: {dep or '?'} → {arr}")
                 else:
-                    print(f"[pending] {callsign} — cel nadal nieznany (OpenSky + FA)")
-                    continue
+                    # Fallback 2: scrape publicznej strony FlightAware
+                    fa_dep, fa_arr = fa_scrape_destination(callsign)
+                    if fa_arr:
+                        dep = fa_dep or dep
+                        arr = fa_arr
+                    else:
+                        print(f"[pending] {callsign} — cel nadal nieznany (OpenSky + aviationstack + FA)")
+                        continue
 
             if not arr.startswith(POLAND_ICAO_PREFIX):
                 print(f"[pending] {callsign} — cel nie jest Polska, usuwam z kolejki")
@@ -461,30 +558,37 @@ def main() -> None:
         print(f"[{callsign}] Trasa: {dep or '?'} → {arr or '?'}")
 
         if not arr:
-            # Fallback: zapytaj aviationstack o cel
+            # Fallback 1: aviationstack
             as_dep, as_arr = as_get_destination(callsign)
             if as_arr:
                 dep = as_dep or dep
                 arr = as_arr
-                print(f"[{callsign}] Cel z aviationstack: {dep or '?'} → {arr}")
             else:
-                # Oba źródła nie znają celu — dodaj do pending
-                print(f"[{callsign}] Cel nieznany (OpenSky + FA) — dodaję do pending")
-                state["pending"][icao24] = {
-                    "callsign":    callsign,
-                    "first_added": datetime.now(timezone.utc).isoformat(),
-                    "lat":         lat,
-                    "lon":         lon,
-                    "alt_m":       alt_m,
-                    "speed_ms":    speed_ms,
-                }
-                continue
+                # Fallback 2: scrape publicznej strony FlightAware
+                fa_dep, fa_arr = fa_scrape_destination(callsign)
+                if fa_arr:
+                    dep = fa_dep or dep
+                    arr = fa_arr
+                else:
+                    # Wszystkie źródła zawiodły — dodaj do pending
+                    print(f"[{callsign}] Cel nieznany (OpenSky + aviationstack + FA) — dodaję do pending")
+                    state["pending"][icao24] = {
+                        "callsign":    callsign,
+                        "first_added": datetime.now(timezone.utc).isoformat(),
+                        "lat":         lat,
+                        "lon":         lon,
+                        "alt_m":       alt_m,
+                        "speed_ms":    speed_ms,
+                    }
+                    continue
 
         if not arr.startswith(POLAND_ICAO_PREFIX):
             print(f"[{callsign}] Cel nie jest Polska — pomijam")
             continue
 
         src = "aviationstack" if not (flight.get("estArrivalAirport") or "") else "OpenSky"
+        if not (flight.get("estArrivalAirport") or "") and not as_arr:
+            src = "FlightAware"
         ok = try_send_alert(
             callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen, state,
             dest_source=src
