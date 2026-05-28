@@ -403,8 +403,8 @@ def send_email(subject: str, html_body: str) -> None:
 
 
 def try_send_alert(callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms,
-                   first_seen, state, pending_since=None, dest_source="OpenSky") -> bool:
-    """Wyślij alert i dodaj do seen. Zwraca True jeśli sukces."""
+                   first_seen, state, pending_since=None, dest_source="OpenSky") -> str:
+    """Wyślij alert. Zwraca 'sent', 'dedup' lub 'error'."""
     if first_seen:
         dep_date = datetime.fromtimestamp(first_seen, tz=timezone.utc).strftime("%Y-%m-%d")
     else:
@@ -414,7 +414,7 @@ def try_send_alert(callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms,
 
     if flight_key in state["seen"]:
         print(f"[{callsign}] Już wysłano alert dla tego lotu — pomijam")
-        return True  # traktuj jako sukces żeby usunąć z pending
+        return "dedup"
 
     print(f"[{callsign}] 🚨 ALERT: {dep or '?'} → {arr} [{dest_source}] — wysyłam email...")
     subject, html = build_email_html(
@@ -425,10 +425,10 @@ def try_send_alert(callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms,
         send_email(subject, html)
         state["seen"][flight_key] = datetime.now(timezone.utc).isoformat()
         print(f"[{callsign}] ✓ Email wysłany na {EMAIL_TO}")
-        return True
+        return "sent"
     except Exception as e:
         print(f"[{callsign}] ✗ Błąd wysyłki: {e}")
-        return False
+        return "error"
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
@@ -487,14 +487,15 @@ def main() -> None:
 
             # Cel to Polska!
             pending_since = info["first_added"][:16].replace("T", " ") + " UTC"
-            ok = try_send_alert(
+            result = try_send_alert(
                 callsign, icao24, dep, arr,
                 info.get("lat"), info.get("lon"),
                 info.get("alt_m"), info.get("speed_ms"),
                 first_seen, state, pending_since=pending_since, dest_source=dest_src
             )
-            if ok:
+            if result in ("sent", "dedup"):
                 to_remove.append(icao24)
+            if result == "sent":
                 alerts_sent += 1
 
         for icao24 in to_remove:
@@ -586,14 +587,15 @@ def main() -> None:
             print(f"[{callsign}] Cel nie jest Polska — pomijam")
             continue
 
-        src = "aviationstack" if not (flight.get("estArrivalAirport") or "") else "OpenSky"
-        if not (flight.get("estArrivalAirport") or "") and not as_arr:
-            src = "FlightAware"
-        ok = try_send_alert(
+        # Ustal źródło danych o celu
+        osn_had_arr = bool(flight and (flight.get("estArrivalAirport") or "").strip())
+        src = "OpenSky" if osn_had_arr else ("aviationstack" if as_arr else "FlightAware")
+
+        result = try_send_alert(
             callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen, state,
             dest_source=src
         )
-        if ok:
+        if result == "sent":
             alerts_sent += 1
 
     save_state(state)
