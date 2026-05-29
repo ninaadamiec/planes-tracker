@@ -146,6 +146,13 @@ def opensky_get(path: str, params: dict | None = None) -> dict | list | None:
         return None
 
 
+def get_airborne_states() -> list:
+    data = opensky_get("/states/all")
+    if not data or "states" not in data:
+        return []
+    return [s for s in (data["states"] or []) if s and s[8] is False]
+
+
 def get_aircraft_info(icao24: str) -> str:
     """Zwraca opis samolotu np. 'An-124 (UR-82027)' lub '' jeśli brak danych."""
     data = opensky_get(f"/metadata/aircraft/icao24/{icao24.lower()}")
