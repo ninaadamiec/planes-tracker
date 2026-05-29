@@ -130,7 +130,22 @@ def opensky_get(path: str, params: dict | None = None) -> dict | list | None:
         return None
 
 
-def get_airborne_states() -> list:
+def get_aircraft_info(icao24: str) -> str:
+    """Zwraca opis samolotu np. 'An-124 (UR-82027)' lub '' jeśli brak danych."""
+    data = opensky_get(f"/metadata/aircraft/icao24/{icao24.lower()}")
+    if not isinstance(data, dict):
+        return ""
+    parts = []
+    model = (data.get("model") or data.get("typecode") or "").strip()
+    reg   = (data.get("registration") or "").strip()
+    if model:
+        parts.append(model)
+    if reg:
+        parts.append(f"({reg})")
+    return " ".join(parts)
+
+
+
     data = opensky_get("/states/all")
     if not data or "states" not in data:
         return []
@@ -324,15 +339,13 @@ def fa_scrape_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
 
 def build_email_html(
     callsign: str, icao24: str, dep: str, arr: str,
-    lat, lon, alt_m, speed_ms, first_seen_ts,
+    first_seen_ts,
     pending_since: str | None = None,
     dest_source: str = "OpenSky",
     eta_ts: int | None = None,
+    aircraft_info: str = "",
 ) -> tuple[str, str]:
 
-    alt_ft  = f"{int(alt_m * 3.28084):,} ft"    if alt_m    else "–"
-    spd_kts = f"{int(speed_ms * 1.94384):,} kts" if speed_ms else "–"
-    pos_str = f"{lat:.4f}°, {lon:.4f}°"           if (lat and lon) else "–"
     dep_time = (
         datetime.fromtimestamp(first_seen_ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         if first_seen_ts else "–"
@@ -342,6 +355,12 @@ def build_email_html(
         if eta_ts else "–"
     )
     now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    is_poland = arr.startswith(POLAND_ICAO_PREFIX)
+    dest_flag  = "🇵🇱 " if is_poland else ""
+    dest_label_subject = f"{arr} (Polska)" if is_poland else (arr or "cel nieznany")
+    dest_row_label = f"Dokąd {dest_flag}".strip()
+    header_text = "lot do Polski" if is_poland else f"lot ({arr or 'cel nieznany'})"
 
     pending_note = ""
     if pending_since:
@@ -353,17 +372,25 @@ def build_email_html(
           </td>
         </tr>"""
 
-    dest_label = f"{arr} (Polska)" if arr.startswith(POLAND_ICAO_PREFIX) else (arr or "cel nieznany")
-    subject = f"✈️ [FlightTracker] {callsign} → {dest_label}"
+    aircraft_row = ""
+    if aircraft_info:
+        aircraft_row = f"""
+        <tr>
+          <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Samolot</td>
+          <td style="padding:9px 12px;border:1px solid #e5e7eb">{aircraft_info}</td>
+        </tr>"""
+
+    subject = f"✈️ [FlightTracker] {callsign} → {dest_label_subject}"
     source_color = "#1a56db" if dest_source == "OpenSky" else "#e26f24"
     source_badge = f'<span style="background:{source_color};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">{dest_source}</span>'
+
     html = f"""<!DOCTYPE html>
 <html lang="pl"><head><meta charset="utf-8"><title>Alert lotniczy</title></head>
 <body style="font-family:Arial,sans-serif;background:#f9fafb;margin:0;padding:20px">
   <div style="max-width:580px;margin:auto;background:#fff;border-radius:8px;
               box-shadow:0 1px 4px rgba(0,0,0,.12);overflow:hidden">
     <div style="background:#1a56db;padding:20px 24px">
-      <h1 style="color:#fff;margin:0;font-size:20px">✈️ Alert lotniczy – lot do Polski</h1>
+      <h1 style="color:#fff;margin:0;font-size:20px">✈️ Alert lotniczy – {header_text}</h1>
     </div>
     <div style="padding:24px">
       <table style="width:100%;border-collapse:collapse;font-size:14px">
@@ -375,12 +402,13 @@ def build_email_html(
           <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">ICAO24 (hex)</td>
           <td style="padding:9px 12px;border:1px solid #e5e7eb;font-family:monospace">{icao24}</td>
         </tr>
+        {aircraft_row}
         <tr>
           <td style="padding:9px 12px;background:#dbeafe;font-weight:bold">Skąd</td>
           <td style="padding:9px 12px;border:1px solid #e5e7eb">{dep or "nieznane"}</td>
         </tr>
         <tr>
-          <td style="padding:9px 12px;background:#dcfce7;font-weight:bold">Dokąd 🇵🇱</td>
+          <td style="padding:9px 12px;background:#dcfce7;font-weight:bold">{dest_row_label}</td>
           <td style="padding:9px 12px;border:1px solid #e5e7eb"><strong>{airport_label(arr)}</strong> {source_badge}</td>
         </tr>
         <tr>
@@ -390,18 +418,6 @@ def build_email_html(
         <tr>
           <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Przylot (est.)</td>
           <td style="padding:9px 12px;border:1px solid #e5e7eb">{eta_str}</td>
-        </tr>
-        <tr>
-          <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Pozycja</td>
-          <td style="padding:9px 12px;border:1px solid #e5e7eb">{pos_str}</td>
-        </tr>
-        <tr>
-          <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Wysokość</td>
-          <td style="padding:9px 12px;border:1px solid #e5e7eb">{alt_ft}</td>
-        </tr>
-        <tr>
-          <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Prędkość</td>
-          <td style="padding:9px 12px;border:1px solid #e5e7eb">{spd_kts}</td>
         </tr>
         {pending_note}
       </table>
@@ -439,9 +455,9 @@ def send_email(subject: str, html_body: str) -> None:
         srv.send_message(msg)
 
 
-def try_send_alert(callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms,
+def try_send_alert(callsign, icao24, dep, arr,
                    first_seen, state, pending_since=None, dest_source="OpenSky",
-                   eta_ts=None) -> str:
+                   eta_ts=None, aircraft_info="") -> str:
     """Wyślij alert. Zwraca 'sent', 'dedup' lub 'error'."""
     if first_seen:
         dep_date = datetime.fromtimestamp(first_seen, tz=timezone.utc).strftime("%Y-%m-%d")
@@ -456,8 +472,9 @@ def try_send_alert(callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms,
 
     print(f"[{callsign}] 🚨 ALERT: {dep or '?'} → {arr} [{dest_source}] — wysyłam email...")
     subject, html = build_email_html(
-        callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen,
-        pending_since, dest_source=dest_source, eta_ts=eta_ts
+        callsign, icao24, dep, arr, first_seen,
+        pending_since, dest_source=dest_source, eta_ts=eta_ts,
+        aircraft_info=aircraft_info
     )
     try:
         send_email(subject, html)
@@ -525,14 +542,13 @@ def main() -> None:
                 to_remove.append(icao24)
                 continue
 
-            # Cel to Polska!
+            # Cel potwierdzony
             pending_since = info["first_added"][:16].replace("T", " ") + " UTC"
+            aircraft_info = get_aircraft_info(icao24)
             result = try_send_alert(
                 callsign, icao24, dep, arr,
-                info.get("lat"), info.get("lon"),
-                info.get("alt_m"), info.get("speed_ms"),
                 first_seen, state, pending_since=pending_since, dest_source=dest_src,
-                eta_ts=eta_ts
+                eta_ts=eta_ts, aircraft_info=aircraft_info
             )
             if result in ("sent", "dedup"):
                 to_remove.append(icao24)
@@ -635,9 +651,10 @@ def main() -> None:
         osn_had_arr = bool(flight and (flight.get("estArrivalAirport") or "").strip())
         src = "OpenSky" if osn_had_arr else ("aviationstack" if as_arr else "FlightAware")
 
+        aircraft_info = get_aircraft_info(icao24)
         result = try_send_alert(
-            callsign, icao24, dep, arr, lat, lon, alt_m, speed_ms, first_seen, state,
-            dest_source=src, eta_ts=eta_ts
+            callsign, icao24, dep, arr, first_seen, state,
+            dest_source=src, eta_ts=eta_ts, aircraft_info=aircraft_info
         )
         if result == "sent":
             alerts_sent += 1
