@@ -41,6 +41,7 @@ SMTP_PORT      = int(os.environ.get("SMTP_PORT", "465"))
 # ─── Polish airports lookup ───────────────────────────────────────────────────
 
 POLISH_AIRPORTS: dict[str, str] = {
+    # Cywilne
     "EPWA": "Warszawa Chopin",
     "EPMO": "Warszawa Modlin",
     "EPKK": "Kraków Balice",
@@ -54,14 +55,29 @@ POLISH_AIRPORTS: dict[str, str] = {
     "EPSC": "Szczecin Goleniów",
     "EPLL": "Łódź Lublinek",
     "EPZG": "Zielona Góra Babimost",
+    "EPRA": "Radom Sadków",
+    "EPSY": "Olsztyn-Mazury Szymany",
+    "EPRG": "Rzeszów Mielec",
+    # Wojskowe / dwufunkcyjne
+    "EPKS": "Poznań Krzesiny",
     "EPKP": "Kraków Rakowice-Czyżyny",
     "EPDE": "Dęblin",
     "EPML": "Mielec",
     "EPMI": "Mińsk Mazowiecki",
     "EPMB": "Malbork",
-    "EPBO": "Bydgoszcz Biedaszkowo",
+    "EPBO": "Bydgoszcz Szwederowo (wojsk.)",
     "EPOK": "Ostrów Mazowiecka",
     "EPLY": "Łask",
+    "EPLK": "Łęczyca",
+    "EPPR": "Pruszcz Gdański",
+    "EPCE": "Centrum Pruszcz",
+    "EPOW": "Nowe Miasto nad Pilicą",
+    "EPWT": "Warszawa Babice",
+    "EPCH": "Chełm",
+    "EPKB": "Krosno",
+    "EPZD": "Świdwin",
+    "EPIR": "Inowrocław",
+    "EPPT": "Płock",
 }
 
 
