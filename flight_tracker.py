@@ -153,19 +153,48 @@ def get_airborne_states() -> list:
     return [s for s in (data["states"] or []) if s and s[8] is False]
 
 
-def get_aircraft_info(icao24: str) -> str:
+# Znane zakresy ICAO24 dla operatorów Antonovów
+_ICAO24_HINTS: list[tuple[str, str, str]] = [
+    ("5080", "An-124", "Antonov Airlines (ADB)"),
+    ("508",  "An-124", "Antonov Airlines (ADB)"),
+    ("152",  "An-124", "Volga-Dnepr (VDA)"),
+    ("1540", "An-124", "Volga-Dnepr (VDA)"),
+]
+
+# Hint po prefiksie callsignu gdy ICAO24 nie jest jednoznaczny
+_CALLSIGN_HINTS: dict[str, str] = {
+    "CMB": "Boeing 747-8F (Silk Way West)",
+    "CVK": "An-124 (CargoLogicAir / CVK)",
+}
+
+
+def get_aircraft_info(icao24: str, callsign: str = "") -> str:
     """Zwraca opis samolotu np. 'An-124 (UR-82027)' lub '' jeśli brak danych."""
+    # Próba 1: OpenSky metadata
     data = opensky_get(f"/metadata/aircraft/icao24/{icao24.lower()}")
-    if not isinstance(data, dict):
-        return ""
-    parts = []
-    model = (data.get("model") or data.get("typecode") or "").strip()
-    reg   = (data.get("registration") or "").strip()
-    if model:
-        parts.append(model)
-    if reg:
-        parts.append(f"({reg})")
-    return " ".join(parts)
+    if isinstance(data, dict):
+        model = (data.get("model") or data.get("typecode") or "").strip()
+        reg   = (data.get("registration") or "").strip()
+        if model or reg:
+            parts = []
+            if model:
+                parts.append(model)
+            if reg:
+                parts.append(f"({reg})")
+            return " ".join(parts)
+
+    # Próba 2: fallback na podstawie prefiksu ICAO24
+    hex_lower = icao24.lower()
+    for prefix, aircraft_type, operator in _ICAO24_HINTS:
+        if hex_lower.startswith(prefix.lower()):
+            return f"{aircraft_type} ({operator})"
+
+    # Próba 3: fallback na podstawie callsignu
+    for prefix, hint in _CALLSIGN_HINTS.items():
+        if callsign.startswith(prefix):
+            return hint
+
+    return ""
 
 
 
@@ -567,7 +596,7 @@ def main() -> None:
 
             # Cel potwierdzony
             pending_since = info["first_added"][:16].replace("T", " ") + " UTC"
-            aircraft_info = get_aircraft_info(icao24)
+            aircraft_info = get_aircraft_info(icao24, callsign)
             result = try_send_alert(
                 callsign, icao24, dep, arr,
                 first_seen, state, pending_since=pending_since, dest_source=dest_src,
@@ -674,7 +703,7 @@ def main() -> None:
         osn_had_arr = bool(flight and (flight.get("estArrivalAirport") or "").strip())
         src = "OpenSky" if osn_had_arr else ("aviationstack" if as_arr else "FlightAware")
 
-        aircraft_info = get_aircraft_info(icao24)
+        aircraft_info = get_aircraft_info(icao24, callsign)
         result = try_send_alert(
             callsign, icao24, dep, arr, first_seen, state,
             dest_source=src, eta_ts=eta_ts, aircraft_info=aircraft_info
