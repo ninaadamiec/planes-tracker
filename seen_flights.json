@@ -34,6 +34,14 @@
       "lon": 17.3247,
       "alt_m": 4876.8,
       "speed_ms": 203.75
+    },
+    "a5dc21": {
+      "callsign": "CMB404",
+      "first_added": "2026-05-29T18:15:35.790433+00:00",
+      "lat": null,
+      "lon": null,
+      "alt_m": null,
+      "speed_ms": 252.42
     }
   }
 }
