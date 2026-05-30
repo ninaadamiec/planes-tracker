@@ -43,6 +43,14 @@
       "lon": -6.6178,
       "alt_m": 5882.64,
       "speed_ms": 129.79
+    },
+    "a63299": {
+      "callsign": "CMB415",
+      "first_added": "2026-05-30T04:18:31.182912+00:00",
+      "lat": null,
+      "lon": null,
+      "alt_m": null,
+      "speed_ms": 9.77
     }
   }
 }
