@@ -41,14 +41,6 @@
       "lon": null,
       "alt_m": null,
       "speed_ms": 24.75
-    },
-    "a51a7b": {
-      "callsign": "CMB406",
-      "first_added": "2026-06-03T18:45:36.465765+00:00",
-      "lat": 49.1279,
-      "lon": 8.454,
-      "alt_m": 2735.58,
-      "speed_ms": 141.4
     }
   }
 }
