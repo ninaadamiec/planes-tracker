@@ -32,6 +32,14 @@
       "lon": null,
       "alt_m": null,
       "speed_ms": 81.98
+    },
+    "a9675d": {
+      "callsign": "CMB575",
+      "first_added": "2026-06-09T14:30:48.204788+00:00",
+      "lat": 51.049,
+      "lon": 13.1581,
+      "alt_m": 6256.02,
+      "speed_ms": 244.18
     }
   }
 }
