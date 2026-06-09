@@ -24,6 +24,14 @@
       "lon": 15.3259,
       "alt_m": 3375.66,
       "speed_ms": 177.34
+    },
+    "152c96": {
+      "callsign": "VDA207",
+      "first_added": "2026-06-09T13:15:37.539562+00:00",
+      "lat": null,
+      "lon": null,
+      "alt_m": null,
+      "speed_ms": 81.98
     }
   }
 }
