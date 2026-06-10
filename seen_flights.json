@@ -10,14 +10,6 @@
     "ADB592F_EDDP_LFBP_2026-06-10": "2026-06-10T12:01:02.608387+00:00"
   },
   "pending": {
-    "152c96": {
-      "callsign": "VDA207",
-      "first_added": "2026-06-09T13:15:37.539562+00:00",
-      "lat": null,
-      "lon": null,
-      "alt_m": null,
-      "speed_ms": 81.98
-    },
     "a9675d": {
       "callsign": "CMB575",
       "first_added": "2026-06-09T14:30:48.204788+00:00",
