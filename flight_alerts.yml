@@ -1,11 +1,13 @@
 name: Flight Alerts
 
 on:
-  # Fallback schedule – GitHub może opóźniać/pomijać runy na prywatnych repo.
-  # Główny trigger to cron-job.org przez workflow_dispatch (patrz README).
+  # Rzadki fallback (raz na 3h) na wypadek gdyby cron-job.org zawiódł.
+  # GŁÓWNYM triggerem jest cron-job.org wywołujący workflow_dispatch poniżej —
+  # jeśli oba triggery działałyby co 20 min naraz, zużywałoby to PODWÓJNIE
+  # tyle minut Actions (to był powód wcześniejszego wyczerpania limitu).
   schedule:
-    - cron: '*/20 * * * *'   # co 20 minut (bezpieczny limit dla prywatnego repo)
-  workflow_dispatch:           # trigger z cron-job.org lub ręcznie z panelu GitHub
+    - cron: '0 */3 * * *'    # fallback co 3h
+  workflow_dispatch:           # główny trigger z cron-job.org
 
 # Potrzebne do commitowania seen_flights.json z powrotem do repo
 permissions:
