@@ -129,11 +129,11 @@ def opensky_get(path: str, params: dict | None = None) -> dict | list | None:
     url = f"https://opensky-network.org/api{path}"
     auth = (OPENSKY_USER, OPENSKY_PASS) if OPENSKY_USER else None
     try:
-        r = SESSION.get(url, params=params, auth=auth, timeout=10)
+        r = SESSION.get(url, params=params, auth=auth, timeout=6)
         if r.status_code == 429:
             print(f"[api] Rate limited, sleeping 60s...")
             time.sleep(60)
-            r = SESSION.get(url, params=params, auth=auth, timeout=10)
+            r = SESSION.get(url, params=params, auth=auth, timeout=6)
         if r.status_code == 404:
             return None  # brak danych – nie loguj jako błąd
         r.raise_for_status()
@@ -176,7 +176,7 @@ def hexdb_lookup(icao24: str) -> dict:
     Zwraca dict {model, reg, operator} (puste stringi gdy brak danych).
     """
     try:
-        r = SESSION.get(f"https://hexdb.io/api/v1/aircraft/{icao24.lower()}", timeout=10)
+        r = SESSION.get(f"https://hexdb.io/api/v1/aircraft/{icao24.lower()}", timeout=5)
         if r.status_code != 200:
             return dict(_EMPTY_AIRCRAFT)
         data = r.json()
@@ -262,7 +262,7 @@ def as_get_destination(callsign: str) -> tuple[str, str, int | None] | tuple[Non
         "limit": 1,
     }
     try:
-        r = SESSION.get(url, params=params, timeout=15)
+        r = SESSION.get(url, params=params, timeout=8)
         r.raise_for_status()
         data = r.json()
 
@@ -274,7 +274,7 @@ def as_get_destination(callsign: str) -> tuple[str, str, int | None] | tuple[Non
         if not flights:
             # Spróbuj bez flight_status – lot może być już na finałowym podejściu
             params.pop("flight_status")
-            r2 = SESSION.get(url, params=params, timeout=15)
+            r2 = SESSION.get(url, params=params, timeout=8)
             r2.raise_for_status()
             flights = (r2.json().get("data") or [])
 
@@ -393,7 +393,7 @@ def fa_scrape_destination(callsign: str) -> tuple[str, str, dict] | tuple[None, 
     """
     url = f"https://www.flightaware.com/live/flight/{callsign}"
     try:
-        r = SESSION.get(url, headers=_FA_HEADERS, timeout=20)
+        r = SESSION.get(url, headers=_FA_HEADERS, timeout=12)
         if r.status_code == 404:
             print(f"[fa_scrape] Brak lotu {callsign} na FlightAware")
             return None, None, dict(_EMPTY_AIRCRAFT)
