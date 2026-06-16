@@ -5,6 +5,7 @@ Monitors flights by callsign prefix and sends email when destination is Poland.
 
 import os
 import json
+import re
 import smtplib
 import requests
 import time
@@ -19,9 +20,6 @@ CALLSIGN_PREFIXES = ["CMB", "ADB", "VDA", "CVK"]
 # Te prefiksy alertują zawsze — niezależnie od celu lotu
 ALWAYS_ALERT_PREFIXES = ["ADB"]
 
-
-def always_alert(callsign: str) -> bool:
-    return any(callsign.startswith(p) for p in ALWAYS_ALERT_PREFIXES)
 POLAND_ICAO_PREFIX = "EP"
 STATE_FILE = "seen_flights.json"
 STATE_RETENTION_DAYS = 7
@@ -37,6 +35,11 @@ EMAIL_TO       = os.environ.get("EMAIL_TO", "")
 EMAIL_PASS     = os.environ.get("EMAIL_PASSWORD", "")
 SMTP_HOST      = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT      = int(os.environ.get("SMTP_PORT", "465"))
+
+
+def always_alert(callsign: str) -> bool:
+    """Czy ten callsign ma alertować niezależnie od celu lotu."""
+    return any(callsign.startswith(p) for p in ALWAYS_ALERT_PREFIXES)
 
 # ─── Polish airports lookup ───────────────────────────────────────────────────
 
@@ -90,7 +93,7 @@ def airport_label(code: str) -> str:
 # State JSON structure:
 # {
 #   "seen":    { "flight_key": "iso_timestamp", ... },   ← wysłane alerty
-#   "pending": { "icao24": { "callsign", "first_added", "lat", "lon", ... }, ... }
+#   "pending": { "icao24": { "callsign", "first_added" }, ... }
 # }
 
 def load_state() -> dict:
@@ -131,7 +134,7 @@ def opensky_get(path: str, params: dict | None = None) -> dict | list | None:
     try:
         r = SESSION.get(url, params=params, auth=auth, timeout=6)
         if r.status_code == 429:
-            print(f"[api] Rate limited, sleeping 60s...")
+            print("[api] Rate limited, sleeping 60s...")
             time.sleep(60)
             r = SESSION.get(url, params=params, auth=auth, timeout=6)
         if r.status_code == 404:
@@ -249,7 +252,7 @@ def as_get_destination(callsign: str) -> tuple[str, str, int | None] | tuple[Non
     Odpytaj aviationstack.com o cel lotu po callsignie (numerze lotu).
     Darmowy tier: 1000 zapytań/miesiąc, bez karty kredytowej.
     Rejestracja: https://aviationstack.com/signup/free
-    Zwraca (dep_icao, arr_icao) lub (None, None).
+    Zwraca (dep_icao, arr_icao, eta_unix_ts) lub (None, None, None).
     """
     if not AVIATIONSTACK_KEY:
         return None, None, None
@@ -294,8 +297,7 @@ def as_get_destination(callsign: str) -> tuple[str, str, int | None] | tuple[Non
             eta_ts = None
             if eta_iso:
                 try:
-                    from datetime import datetime as _dt
-                    eta_ts = int(_dt.fromisoformat(eta_iso.replace("Z", "+00:00")).timestamp())
+                    eta_ts = int(datetime.fromisoformat(eta_iso.replace("Z", "+00:00")).timestamp())
                 except Exception:
                     pass
             return dep, arr, eta_ts
@@ -306,10 +308,6 @@ def as_get_destination(callsign: str) -> tuple[str, str, int | None] | tuple[Non
     except Exception as e:
         print(f"[as] Błąd: {e}")
         return None, None, None
-
-
-
-import re
 
 # ─── FlightAware public page scraper (bez API, bez rejestracji) ───────────────
 
@@ -555,7 +553,6 @@ def build_email_html(
            style="display:inline-block;background:#374151;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;font-size:13px">RadarBox</a>
       </div>
-
     </div>
     <div style="padding:12px 24px;background:#f3f4f6;font-size:11px;color:#9ca3af">
       Wygenerowano: {now_str}
@@ -683,7 +680,7 @@ def main() -> None:
             state["pending"].pop(icao24, None)
 
     # ── Krok 2: Sprawdź aktualne loty w powietrzu ─────────────────────────────
-    print(f"\n[main] Pobieranie aktualnych pozycji...")
+    print("\n[main] Pobieranie aktualnych pozycji...")
     states = get_airborne_states()
     if not states:
         print("[main] Brak danych z OpenSky — możliwa niedostępność API")
@@ -706,10 +703,6 @@ def main() -> None:
     for s in matches:
         icao24   = s[0]
         callsign = (s[1] or "").strip()
-        lon      = s[5]
-        lat      = s[6]
-        alt_m    = s[7]
-        speed_ms = s[9]
 
         # Pomiń jeśli już jest w pending (będzie sprawdzone powyżej w następnym runie)
         if icao24 in state["pending"]:
@@ -726,10 +719,6 @@ def main() -> None:
             state["pending"][icao24] = {
                 "callsign":    callsign,
                 "first_added": datetime.now(timezone.utc).isoformat(),
-                "lat":         lat,
-                "lon":         lon,
-                "alt_m":       alt_m,
-                "speed_ms":    speed_ms,
             }
             continue
 
@@ -761,10 +750,6 @@ def main() -> None:
                     state["pending"][icao24] = {
                         "callsign":    callsign,
                         "first_added": datetime.now(timezone.utc).isoformat(),
-                        "lat":         lat,
-                        "lon":         lon,
-                        "alt_m":       alt_m,
-                        "speed_ms":    speed_ms,
                     }
                     continue
 
