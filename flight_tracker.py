@@ -153,7 +153,7 @@ def get_airborne_states() -> list:
     return [s for s in (data["states"] or []) if s and s[8] is False]
 
 
-# Znane zakresy ICAO24 dla operatorów Antonovów
+# Znane zakresy ICAO24 dla operatorów Antonovów (flota jednorodna — bezpieczne hinty)
 _ICAO24_HINTS: list[tuple[str, str, str]] = [
     ("5080", "An-124", "Antonov Airlines (ADB)"),
     ("508",  "An-124", "Antonov Airlines (ADB)"),
@@ -161,47 +161,68 @@ _ICAO24_HINTS: list[tuple[str, str, str]] = [
     ("1540", "An-124", "Volga-Dnepr (VDA)"),
 ]
 
-# Hint po prefiksie callsignu gdy ICAO24 nie jest jednoznaczny
-_CALLSIGN_HINTS: dict[str, str] = {
-    "CMB": "Boeing 747-8F (Silk Way West)",
-    "CVK": "An-124 (CargoLogicAir / CVK)",
-}
+# UWAGA: CMB (USTRANSCOM) i CVK nie mają jednego operatora — to callsigny
+# czarterowe, rzeczywisty przewoźnik (Atlas Air, Kalitta Air, National
+# Airlines, CargoLogicAir itd.) zmienia się per lot. Nie da się tego
+# sensownie zahardkodować — operatora bierzemy z realnych źródeł (OpenSky,
+# hexdb.io, scraping FlightAware).
+
+_EMPTY_AIRCRAFT = {"model": "", "reg": "", "operator": ""}
 
 
-def get_aircraft_info(icao24: str, callsign: str = "") -> str:
-    """Zwraca opis samolotu np. 'An-124 (UR-82027)' lub '' jeśli brak danych."""
-    # Próba 1: OpenSky metadata
+def hexdb_lookup(icao24: str) -> dict:
+    """
+    hexdb.io – darmowa baza ICAO24→samolot, bez rejestracji/klucza API.
+    Zwraca dict {model, reg, operator} (puste stringi gdy brak danych).
+    """
+    try:
+        r = SESSION.get(f"https://hexdb.io/api/v1/aircraft/{icao24.lower()}", timeout=10)
+        if r.status_code != 200:
+            return dict(_EMPTY_AIRCRAFT)
+        data = r.json()
+        if not isinstance(data, dict):
+            return dict(_EMPTY_AIRCRAFT)
+        model = (data.get("Type") or data.get("ICAOTypeCode") or "").strip()
+        reg   = (data.get("Registration") or "").strip()
+        oper  = (data.get("RegisteredOwners") or "").strip()
+        return {"model": model, "reg": reg, "operator": oper}
+    except Exception as e:
+        print(f"[hexdb] Błąd: {e}")
+        return dict(_EMPTY_AIRCRAFT)
+
+
+def get_aircraft_info(icao24: str, callsign: str = "") -> dict:
+    """
+    Zwraca dict {model, reg, operator} łącząc dane z dostępnych źródeł
+    (pola uzupełniane priorytetowo, pierwsze niepuste źródło wygrywa per pole).
+    """
+    result = dict(_EMPTY_AIRCRAFT)
+
+    # Źródło 1: OpenSky metadata
     data = opensky_get(f"/metadata/aircraft/icao24/{icao24.lower()}")
     if isinstance(data, dict):
-        model = (data.get("model") or data.get("typecode") or "").strip()
-        reg   = (data.get("registration") or "").strip()
-        if model or reg:
-            parts = []
-            if model:
-                parts.append(model)
-            if reg:
-                parts.append(f"({reg})")
-            return " ".join(parts)
+        result["model"]    = (data.get("model") or data.get("typecode") or "").strip()
+        result["reg"]      = (data.get("registration") or "").strip()
+        result["operator"] = (data.get("operator") or data.get("owner") or "").strip()
 
-    # Próba 2: fallback na podstawie prefiksu ICAO24
-    hex_lower = icao24.lower()
-    for prefix, aircraft_type, operator in _ICAO24_HINTS:
-        if hex_lower.startswith(prefix.lower()):
-            return f"{aircraft_type} ({operator})"
+    # Źródło 2: hexdb.io — wypełnia tylko brakujące pola
+    if not all(result.values()):
+        hx = hexdb_lookup(icao24)
+        result["model"]    = result["model"]    or hx["model"]
+        result["reg"]      = result["reg"]      or hx["reg"]
+        result["operator"] = result["operator"] or hx["operator"]
 
-    # Próba 3: fallback na podstawie callsignu
-    for prefix, hint in _CALLSIGN_HINTS.items():
-        if callsign.startswith(prefix):
-            return hint
+    # Źródło 3: fallback na podstawie prefiksu ICAO24 — tylko dla flot
+    # jednorodnych (Antonovy), NIE dla czarterowych callsignów jak CMB/CVK
+    if not result["model"] or not result["operator"]:
+        hex_lower = icao24.lower()
+        for prefix, aircraft_type, operator in _ICAO24_HINTS:
+            if hex_lower.startswith(prefix.lower()):
+                result["model"]    = result["model"]    or aircraft_type
+                result["operator"] = result["operator"] or operator
+                break
 
-    return ""
-
-
-
-    data = opensky_get("/states/all")
-    if not data or "states" not in data:
-        return []
-    return [s for s in (data["states"] or []) if s and s[8] is False]
+    return result
 
 
 def get_flight_record(icao24: str) -> dict | None:
@@ -318,6 +339,33 @@ _FA_ORIGIN_LINK = re.compile(
     re.S | re.I
 )
 
+# Typ samolotu i operator – FlightAware osadza je w JSON na stronie lotu
+# np. "aircraftType":"B748" lub "friendlyType":"Boeing 747-8 Freighter"
+_FA_AIRCRAFT_TYPE = re.compile(
+    r'"friendlyType"\s*:\s*"([^"]{3,60})"', re.S
+)
+# Operator / przewoźnik – pole "operator" lub nazwa wyświetlana przy "Owner/Operator"
+_FA_OPERATOR = re.compile(
+    r'"operator"\s*:\s*\{[^}]{0,200}"name"\s*:\s*"([^"]{2,60})"', re.S
+)
+# Rejestracja samolotu
+_FA_REGISTRATION = re.compile(
+    r'"registration"\s*:\s*"([A-Z0-9\-]{3,10})"', re.S
+)
+
+
+def _extract_aircraft_info(html: str) -> dict:
+    """Wyciąga {model, reg, operator} z HTML strony FlightAware."""
+    type_m = _FA_AIRCRAFT_TYPE.search(html)
+    reg_m  = _FA_REGISTRATION.search(html)
+    op_m   = _FA_OPERATOR.search(html)
+
+    return {
+        "model":    type_m.group(1).strip() if type_m else "",
+        "reg":      reg_m.group(1).strip()  if reg_m  else "",
+        "operator": op_m.group(1).strip()   if op_m   else "",
+    }
+
 
 def _extract_icao(html: str, dest_patterns, origin_patterns) -> tuple[str, str]:
     """Wyciąga (dep, arr) z HTML. Zwraca ('', '') jeśli nie znaleziono."""
@@ -335,27 +383,30 @@ def _extract_icao(html: str, dest_patterns, origin_patterns) -> tuple[str, str]:
     return dep, arr
 
 
-def fa_scrape_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
+def fa_scrape_destination(callsign: str) -> tuple[str, str, dict] | tuple[None, None, dict]:
     """
-    Pobiera publiczną stronę FlightAware i wyciąga lotnisko docelowe (ICAO).
+    Pobiera publiczną stronę FlightAware i wyciąga lotnisko docelowe (ICAO)
+    oraz informację o samolocie/operatorze (z tego samego requestu).
     Nie wymaga API ani rejestracji.
-    Zwraca (dep_icao, arr_icao) lub (None, None).
+    Zwraca (dep_icao, arr_icao, aircraft_info). dep/arr mogą być None gdy
+    cel jest nieznany, ale aircraft_info może być wypełnione niezależnie.
     """
     url = f"https://www.flightaware.com/live/flight/{callsign}"
     try:
         r = SESSION.get(url, headers=_FA_HEADERS, timeout=20)
         if r.status_code == 404:
             print(f"[fa_scrape] Brak lotu {callsign} na FlightAware")
-            return None, None
+            return None, None, dict(_EMPTY_AIRCRAFT)
         if r.status_code in (403, 429):
             print(f"[fa_scrape] FlightAware zablokował żądanie ({r.status_code})")
-            return None, None
+            return None, None, dict(_EMPTY_AIRCRAFT)
         r.raise_for_status()
     except Exception as e:
         print(f"[fa_scrape] Błąd połączenia: {e}")
-        return None, None
+        return None, None, dict(_EMPTY_AIRCRAFT)
 
     html = r.text
+    aircraft_info = _extract_aircraft_info(html)
 
     # Próba 1: JSON embedded w stronie (najbardziej wiarygodne)
     dep, arr = _extract_icao(
@@ -377,14 +428,14 @@ def fa_scrape_destination(callsign: str) -> tuple[str, str] | tuple[None, None]:
     # Sanity check: arr nie może być tym samym co dep
     if arr and arr == dep:
         print(f"[fa_scrape] arr == dep ({arr}) — odrzucam wynik (błąd scrapera)")
-        return None, None
+        return None, None, aircraft_info
 
     if arr:
         print(f"[fa_scrape] FlightAware (scrape): {callsign} → {dep or '?'} → {arr}")
-        return dep or None, arr
+        return dep or None, arr, aircraft_info
 
     print(f"[fa_scrape] Nie udało się wyciągnąć celu z FlightAware dla {callsign}")
-    return None, None
+    return None, None, aircraft_info
 
 
 # ─── Email ────────────────────────────────────────────────────────────────────
@@ -395,8 +446,13 @@ def build_email_html(
     pending_since: str | None = None,
     dest_source: str = "OpenSky",
     eta_ts: int | None = None,
-    aircraft_info: str = "",
+    aircraft: dict | None = None,
 ) -> tuple[str, str]:
+
+    aircraft = aircraft or {}
+    model    = (aircraft.get("model") or "").strip()
+    reg      = (aircraft.get("reg") or "").strip()
+    operator = (aircraft.get("operator") or "").strip()
 
     dep_time = (
         datetime.fromtimestamp(first_seen_ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -425,16 +481,27 @@ def build_email_html(
         </tr>"""
 
     aircraft_row = ""
-    if aircraft_info:
+    if model or operator:
+        model_label = model or "nieznany typ"
+        if operator:
+            model_label += f" – {operator}"
         aircraft_row = f"""
         <tr>
           <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Samolot</td>
-          <td style="padding:9px 12px;border:1px solid #e5e7eb">{aircraft_info}</td>
+          <td style="padding:9px 12px;border:1px solid #e5e7eb">{model_label}</td>
+        </tr>"""
+
+    reg_row = ""
+    if reg:
+        reg_row = f"""
+        <tr>
+          <td style="padding:9px 12px;background:#f3f4f6;font-weight:bold">Rejestracja</td>
+          <td style="padding:9px 12px;border:1px solid #e5e7eb;font-family:monospace">{reg}</td>
         </tr>"""
 
     subject = f"✈️ [FlightTracker] {callsign} → {dest_label_subject}"
-    source_color = "#1a56db" if dest_source == "OpenSky" else "#e26f24"
-    source_badge = f'<span style="background:{source_color};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">{dest_source}</span>'
+    # Neutralny szary znacznik źródła – spójny niezależnie od koloru przycisków poniżej
+    source_badge = f'<span style="background:#6b7280;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">{dest_source}</span>'
 
     html = f"""<!DOCTYPE html>
 <html lang="pl"><head><meta charset="utf-8"><title>Alert lotniczy</title></head>
@@ -455,6 +522,7 @@ def build_email_html(
           <td style="padding:9px 12px;border:1px solid #e5e7eb;font-family:monospace">{icao24}</td>
         </tr>
         {aircraft_row}
+        {reg_row}
         <tr>
           <td style="padding:9px 12px;background:#dbeafe;font-weight:bold">Skąd</td>
           <td style="padding:9px 12px;border:1px solid #e5e7eb">{dep or "nieznane"}</td>
@@ -487,6 +555,7 @@ def build_email_html(
            style="display:inline-block;background:#374151;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;font-size:13px">RadarBox</a>
       </div>
+
     </div>
     <div style="padding:12px 24px;background:#f3f4f6;font-size:11px;color:#9ca3af">
       Wygenerowano: {now_str}
@@ -509,7 +578,7 @@ def send_email(subject: str, html_body: str) -> None:
 
 def try_send_alert(callsign, icao24, dep, arr,
                    first_seen, state, pending_since=None, dest_source="OpenSky",
-                   eta_ts=None, aircraft_info="") -> str:
+                   eta_ts=None, aircraft=None) -> str:
     """Wyślij alert. Zwraca 'sent', 'dedup' lub 'error'."""
     if first_seen:
         dep_date = datetime.fromtimestamp(first_seen, tz=timezone.utc).strftime("%Y-%m-%d")
@@ -526,7 +595,7 @@ def try_send_alert(callsign, icao24, dep, arr,
     subject, html = build_email_html(
         callsign, icao24, dep, arr, first_seen,
         pending_since, dest_source=dest_source, eta_ts=eta_ts,
-        aircraft_info=aircraft_info
+        aircraft=aircraft
     )
     try:
         send_email(subject, html)
@@ -572,6 +641,7 @@ def main() -> None:
 
             # Fallbacki gdy OpenSky nie dał celu (lub w ogóle nie odpowiedział)
             eta_ts = flight.get("lastSeen") if flight else None
+            fa_aircraft_info = dict(_EMPTY_AIRCRAFT)
             if not arr:
                 as_dep, as_arr, as_eta = as_get_destination(callsign)
                 if as_arr:
@@ -580,7 +650,7 @@ def main() -> None:
                     eta_ts = as_eta or eta_ts
                     dest_src = "aviationstack"
                 else:
-                    fa_dep, fa_arr = fa_scrape_destination(callsign)
+                    fa_dep, fa_arr, fa_aircraft_info = fa_scrape_destination(callsign)
                     if fa_arr:
                         dep = fa_dep or dep
                         arr = fa_arr
@@ -596,11 +666,13 @@ def main() -> None:
 
             # Cel potwierdzony
             pending_since = info["first_added"][:16].replace("T", " ") + " UTC"
-            aircraft_info = get_aircraft_info(icao24, callsign)
+            aircraft = get_aircraft_info(icao24, callsign)
+            for k in ("model", "reg", "operator"):
+                aircraft[k] = aircraft.get(k) or fa_aircraft_info.get(k, "")
             result = try_send_alert(
                 callsign, icao24, dep, arr,
                 first_seen, state, pending_since=pending_since, dest_source=dest_src,
-                eta_ts=eta_ts, aircraft_info=aircraft_info
+                eta_ts=eta_ts, aircraft=aircraft
             )
             if result in ("sent", "dedup"):
                 to_remove.append(icao24)
@@ -669,6 +741,7 @@ def main() -> None:
         print(f"[{callsign}] Trasa: {dep or '?'} → {arr or '?'}")
 
         as_arr = None
+        fa_aircraft_info = dict(_EMPTY_AIRCRAFT)
         if not arr:
             # Fallback 1: aviationstack
             as_dep, as_arr, as_eta = as_get_destination(callsign)
@@ -678,7 +751,7 @@ def main() -> None:
                 eta_ts = as_eta or eta_ts
             else:
                 # Fallback 2: scrape publicznej strony FlightAware
-                fa_dep, fa_arr = fa_scrape_destination(callsign)
+                fa_dep, fa_arr, fa_aircraft_info = fa_scrape_destination(callsign)
                 if fa_arr:
                     dep = fa_dep or dep
                     arr = fa_arr
@@ -703,10 +776,12 @@ def main() -> None:
         osn_had_arr = bool(flight and (flight.get("estArrivalAirport") or "").strip())
         src = "OpenSky" if osn_had_arr else ("aviationstack" if as_arr else "FlightAware")
 
-        aircraft_info = get_aircraft_info(icao24, callsign)
+        aircraft = get_aircraft_info(icao24, callsign)
+        for k in ("model", "reg", "operator"):
+            aircraft[k] = aircraft.get(k) or fa_aircraft_info.get(k, "")
         result = try_send_alert(
             callsign, icao24, dep, arr, first_seen, state,
-            dest_source=src, eta_ts=eta_ts, aircraft_info=aircraft_info
+            dest_source=src, eta_ts=eta_ts, aircraft=aircraft
         )
         if result == "sent":
             alerts_sent += 1
