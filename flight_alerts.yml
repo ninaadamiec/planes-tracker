@@ -1,13 +1,14 @@
 name: Flight Alerts
 
 on:
-  # Rzadki fallback (raz na 3h) na wypadek gdyby cron-job.org zawiódł.
-  # GŁÓWNYM triggerem jest cron-job.org wywołujący workflow_dispatch poniżej —
-  # jeśli oba triggery działałyby co 20 min naraz, zużywałoby to PODWÓJNIE
-  # tyle minut Actions (to był powód wcześniejszego wyczerpania limitu).
+  # Rare fallback in case cron-job.org fails. The primary trigger is cron-job.org
+  # via workflow_dispatch. Do NOT set both to the same frequent interval —
+  # that would double Actions minutes usage.
+  # At ~83s per run, a 40-minute cron-job.org interval uses ~1440 min/month
+  # (safely within the 2 000 min free tier for private repos).
   schedule:
-    - cron: '0 */3 * * *'    # fallback co 3h
-  workflow_dispatch:           # główny trigger z cron-job.org
+    - cron: '0 6 * * *'   # fallback: once per day at 06:00 UTC
+  workflow_dispatch:
 
 # Potrzebne do commitowania seen_flights.json z powrotem do repo
 permissions:
