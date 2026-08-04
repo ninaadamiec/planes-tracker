@@ -82,15 +82,20 @@ class FlightRoute:
 @dataclass
 class PendingEntry:
     """A flight whose destination is not yet known, stored between runs."""
-    callsign:    str
-    first_added: str  # ISO timestamp
+    callsign:              str
+    first_added:           str        # ISO timestamp
+    fa_unconfirmed_dest:   str = ""   # FA-suggested Poland destination awaiting confirmation
 
     def to_dict(self) -> dict:
         return asdict(self)
 
     @staticmethod
     def from_dict(d: dict) -> PendingEntry:
-        return PendingEntry(callsign=d["callsign"], first_added=d["first_added"])
+        return PendingEntry(
+            callsign=d["callsign"],
+            first_added=d["first_added"],
+            fa_unconfirmed_dest=d.get("fa_unconfirmed_dest", ""),
+        )
 
 
 # ─── Polish airports lookup ───────────────────────────────────────────────────
@@ -221,10 +226,11 @@ class State:
     def mark_alerted(self, flight_key: str) -> None:
         self.seen[flight_key] = datetime.now(timezone.utc).isoformat()
 
-    def add_pending(self, icao24: str, callsign: str) -> None:
+    def add_pending(self, icao24: str, callsign: str, fa_unconfirmed_dest: str = "") -> None:
         self.pending[icao24] = PendingEntry(
             callsign=callsign,
             first_added=datetime.now(timezone.utc).isoformat(),
+            fa_unconfirmed_dest=fa_unconfirmed_dest,
         )
 
     def remove_pending(self, icao24: str) -> None:
@@ -525,19 +531,22 @@ def resolve_aircraft(icao24: str, fa_aircraft: Aircraft | None = None) -> Aircra
 
 # ─── Route resolver ───────────────────────────────────────────────────────────
 
-def resolve_route(callsign: str, icao24: str) -> tuple[FlightRoute | None, Aircraft]:
+def resolve_route(callsign: str, icao24: str) -> tuple[FlightRoute | None, Aircraft, bool]:
     """
     Try to determine the flight route from all available sources in order.
     Also returns any Aircraft metadata gathered as a side-effect of scraping FA.
 
-    Returns (route, aircraft) where route is None if all sources failed.
+    Returns (route, aircraft, fa_only) where:
+    - route is None if all sources failed
+    - fa_only is True when the destination came from FlightAware scraping alone
+      (less reliable — Poland destinations from FA-only require one confirmation run)
     """
     fa_aircraft = Aircraft()
 
     # Source 1: OpenSky (most authoritative, but has ~1h delay and occasional downtime)
     route = fetch_route_from_opensky(icao24)
     if route and route.dest_known:
-        return route, fa_aircraft
+        return route, fa_aircraft, False
 
     # Source 2: aviationstack
     route_as = fetch_route_from_aviationstack(callsign)
@@ -545,7 +554,7 @@ def resolve_route(callsign: str, icao24: str) -> tuple[FlightRoute | None, Aircr
         # Preserve departure from OpenSky if aviationstack didn't have it
         if route and route.dep and not route_as.dep:
             route_as.dep = route.dep
-        return route_as, fa_aircraft
+        return route_as, fa_aircraft, False
 
     # Source 3: FlightAware scrape (also yields aircraft metadata for free)
     fa_result = fetch_from_flightaware(callsign)
@@ -553,11 +562,11 @@ def resolve_route(callsign: str, icao24: str) -> tuple[FlightRoute | None, Aircr
     if fa_result.route and fa_result.route.dest_known:
         if route and route.dep and not fa_result.route.dep:
             fa_result.route.dep = route.dep
-        return fa_result.route, fa_aircraft
+        return fa_result.route, fa_aircraft, True   # fa_only=True
 
     # All sources exhausted — return partial route if at least dep is known
     partial = route or FlightRoute()
-    return (partial if partial.dep else None), fa_aircraft
+    return (partial if partial.dep else None), fa_aircraft, False
 
 
 # ─── Alert email ──────────────────────────────────────────────────────────────
@@ -714,7 +723,7 @@ def process_flight(callsign: str, icao24: str, state: State) -> str | None:
     Returns 'sent', 'dedup', 'error', 'pending' (added to queue), or 'skip'.
     """
     print(f"\n[{callsign}] Resolving route (icao24={icao24})...")
-    route, fa_aircraft = resolve_route(callsign, icao24)
+    route, fa_aircraft, fa_only = resolve_route(callsign, icao24)
     time.sleep(1)   # be polite to APIs
 
     if route is None:
@@ -722,37 +731,63 @@ def process_flight(callsign: str, icao24: str, state: State) -> str | None:
         state.add_pending(icao24, callsign)
         return "pending"
 
-    print(f"[{callsign}] Route: {route.dep or '?'} → {route.arr or '?'}")
+    print(f"[{callsign}] Route: {route.dep or '?'} → {route.arr or '?'} [{route.source}]")
 
     if not should_alert(callsign, route):
         print(f"[{callsign}] Destination {route.arr or '(unknown)'} — skipping")
         return "skip"
 
+    # FA-only Poland destination: queue for one confirmation run before alerting
+    if fa_only and route.dest_is_poland:
+        print(f"[{callsign}] FA-only destination {route.arr} — queuing for confirmation")
+        state.add_pending(icao24, callsign, fa_unconfirmed_dest=route.arr)
+        return "pending"
+
     aircraft = resolve_aircraft(icao24, fa_aircraft)
-    first_seen = None
     record = fetch_flight_record(icao24)
-    if record:
-        first_seen = record.get("firstSeen")
+    first_seen = record.get("firstSeen") if record else None
 
     return send_alert(callsign, icao24, route, first_seen, state, aircraft)
 
 
-def process_pending_flight(icao24: str, entry: PendingEntry, state: State) -> str:
+def process_pending_flight(
+    icao24: str, entry: PendingEntry, state: State, airborne_icao24s: set[str]
+) -> str:
     """
     Re-check a flight from the pending queue.
     Returns 'sent', 'dedup', 'error', 'still_pending', or 'skip'.
     """
     callsign = entry.callsign
-    print(f"[pending] {callsign} ({icao24}) — retrying route lookup...")
 
-    route, fa_aircraft = resolve_route(callsign, icao24)
+    # Don't alert about a flight that has already landed
+    if icao24 not in airborne_icao24s:
+        print(f"[pending] {callsign} — no longer airborne, removing from queue")
+        state.remove_pending(icao24)
+        return "skip"
+
+    print(f"[pending] {callsign} ({icao24}) — retrying route lookup...")
+    route, fa_aircraft, fa_only = resolve_route(callsign, icao24)
     time.sleep(1)
+
+    # If we had an FA-unconfirmed Poland destination, check if it's now confirmed
+    if entry.fa_unconfirmed_dest:
+        if route and route.dest_known and not fa_only:
+            # Confirmed by a reliable source — use the confirmed route
+            print(f"[pending] {callsign} — FA destination confirmed by {route.source}: {route.arr}")
+        elif route and route.dest_known and fa_only:
+            # Still only FA — alert anyway to avoid indefinite delay
+            print(f"[pending] {callsign} — FA destination still unconfirmed, alerting anyway: {route.arr}")
+        else:
+            # No reliable confirmation — treat FA suggestion as wrong, remove
+            print(f"[pending] {callsign} — FA destination {entry.fa_unconfirmed_dest} not confirmed, discarding")
+            state.remove_pending(icao24)
+            return "skip"
 
     if route is None or not route.dest_known:
         print(f"[pending] {callsign} — destination still unknown")
         return "still_pending"
 
-    print(f"[pending] {callsign} — route confirmed: {route.dep or '?'} → {route.arr}")
+    print(f"[pending] {callsign} — route: {route.dep or '?'} → {route.arr}")
 
     if not should_alert(callsign, route):
         print(f"[pending] {callsign} — destination {route.arr} is not Poland — removing from queue")
@@ -779,15 +814,7 @@ def main() -> None:
     state       = State.load()
     alerts_sent = 0
 
-    # Step 1: retry flights in the pending queue
-    if state.pending:
-        print(f"\n[pending] Checking {len(state.pending)} queued flights...")
-        for icao24, entry in list(state.pending.items()):
-            result = process_pending_flight(icao24, entry, state)
-            if result == "sent":
-                alerts_sent += 1
-
-    # Step 2: fetch currently airborne aircraft and check new matches
+    # Step 1: fetch live positions (needed for both pending and new flight checks)
     print("\n[main] Fetching live positions...")
     airborne = fetch_airborne_states()
     if not airborne:
@@ -795,9 +822,19 @@ def main() -> None:
         state.save()
         return
 
+    airborne_icao24s = {s[0] for s in airborne}
     print(f"[main] Aircraft airborne: {len(airborne)}")
+
+    # Step 1 (deferred): retry pending flights — needs airborne set to detect landings
+    if state.pending:
+        print(f"\n[pending] Checking {len(state.pending)} queued flights...")
+        for icao24, entry in list(state.pending.items()):
+            result = process_pending_flight(icao24, entry, state, airborne_icao24s)
+            if result == "sent":
+                alerts_sent += 1
+
     matches = [s for s in airborne if matches_tracked_prefix((s[1] or "").strip())]
-    print(f"[main] Matching callsigns: {len(matches)}")
+    print(f"\n[main] Matching callsigns: {len(matches)}")
     for s in matches:
         print(f"       → {(s[1] or '').strip()} ({s[0]})")
 
