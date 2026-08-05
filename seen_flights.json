@@ -18,8 +18,13 @@
     },
     "50801b": {
       "callsign": "ADB390F",
-      "first_added": "2026-08-05T15:01:34.596808+00:00",
+      "first_added": "2026-08-05T15:20:45.876341+00:00",
       "fa_unconfirmed_dest": "EPRZ"
+    },
+    "152c97": {
+      "callsign": "VDA315",
+      "first_added": "2026-08-05T15:20:47.283418+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
