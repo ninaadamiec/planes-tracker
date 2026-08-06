@@ -1,4 +1,4 @@
-# ✈️ Flight Tracker
+# ✈️ Flight alerts
 
 Monitors cargo and military flights by callsign and sends an email alert when a tracked aircraft is heading to Poland — or is airborne at all, for selected operators.
 
