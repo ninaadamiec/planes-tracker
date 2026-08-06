@@ -13,10 +13,15 @@
     "ADB5503_EPWR__2026-08-06": "2026-08-06T10:16:27.905181+00:00"
   },
   "pending": {
-    "abc201": {
-      "callsign": "CMB478",
-      "first_added": "2026-08-06T15:01:05.224275+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
+    "50801c": {
+      "callsign": "ADB339F",
+      "first_added": "2026-08-06T17:42:19.104210+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "152c98": {
+      "callsign": "VDA4208",
+      "first_added": "2026-08-06T17:42:20.516021+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
