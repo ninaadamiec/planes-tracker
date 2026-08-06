@@ -1,5 +1,5 @@
 """
-Flight Alert Tracker
+Flight Alerts
 Monitors flights by callsign prefix and sends an email alert when the
 destination is Poland — or always, for selected operators (see config).
 """
@@ -652,9 +652,9 @@ def build_email(
         <a href="https://globe.adsbexchange.com/?icao={icao24}"
            style="display:inline-block;background:#059669;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">ADS-B Exchange</a>
-        <a href="https://www.radarbox.com/data/registration?icao24={icao24}"
+        <a href="https://www.airnavradar.com/flight/{callsign}"
            style="display:inline-block;background:#374151;color:#fff;padding:9px 18px;
-                  text-decoration:none;border-radius:5px;font-size:13px">RadarBox</a>
+                  text-decoration:none;border-radius:5px;font-size:13px">AirNav</a>
       </div>
     </div>
     <div style="padding:12px 24px;background:#f3f4f6;font-size:11px;color:#9ca3af">
