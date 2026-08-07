@@ -1,5 +1,5 @@
 """
-Flight Alerts
+Flight Alert Tracker
 Monitors flights by callsign prefix and sends an email alert when the
 destination is Poland — or always, for selected operators (see config).
 """
@@ -190,15 +190,21 @@ class State:
     def load() -> State:
         if not os.path.exists(STATE_FILE):
             return State(seen={}, pending={})
-        with open(STATE_FILE, "r", encoding="utf-8") as f:
-            raw = json.load(f)
+        try:
+            with open(STATE_FILE, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"[state] WARNING: could not read {STATE_FILE} ({e}) — starting fresh")
+            return State(seen={}, pending={})
         # Migrate from legacy format (plain dict without "seen" key)
         if "seen" not in raw:
             raw = {"seen": raw, "pending": {}}
-        pending = {
-            icao24: PendingEntry.from_dict(v)
-            for icao24, v in raw.get("pending", {}).items()
-        }
+        pending = {}
+        for icao24, v in raw.get("pending", {}).items():
+            try:
+                pending[icao24] = PendingEntry.from_dict(v)
+            except (KeyError, TypeError) as e:
+                print(f"[state] Skipping malformed pending entry {icao24}: {e}")
         return State(seen=raw.get("seen", {}), pending=pending)
 
     def save(self) -> None:
@@ -275,27 +281,42 @@ def fetch_airborne_states() -> list:
 
 
 def fetch_flight_record(icao24: str) -> dict | None:
-    """Return the most recent flight record from OpenSky (24 h look-back)."""
+    """
+    Return the most recent flight record from OpenSky (24 h look-back).
+    Returns None if the record is stale — i.e. the flight landed more than
+    2 hours ago and is therefore not the flight currently airborne.
+    """
     end   = int(time.time())
     begin = end - 24 * 3600
     data  = _opensky_get("/flights/aircraft", {"icao24": icao24.lower(), "begin": begin, "end": end})
-    if isinstance(data, list) and data:
-        return data[-1]
-    return None
+    if not isinstance(data, list) or not data:
+        return None
+    record = data[-1]
+    last_seen = record.get("lastSeen")
+    if last_seen and (end - last_seen) > 2 * 3600:
+        print(f"[opensky] Discarding stale record (lastSeen {int((end - last_seen) / 3600)}h ago) — previous flight")
+        return None
+    return record
+
+
+def fetch_route_from_opensky_record(record: dict) -> FlightRoute:
+    """Parse a FlightRoute from a raw OpenSky flight record dict."""
+    arr = (record.get("estArrivalAirport")   or "").strip().upper()
+    dep = (record.get("estDepartureAirport") or "").strip().upper()
+    eta = record.get("lastSeen")
+    return FlightRoute(dep=dep, arr=arr, eta_ts=eta, source="OpenSky")
 
 
 def fetch_route_from_opensky(icao24: str) -> FlightRoute | None:
     """
     Query OpenSky for the flight route of the given aircraft.
-    Returns a FlightRoute if a record exists, None if OpenSky has no data yet.
+    Returns a FlightRoute if a current record exists, None if OpenSky has no
+    data yet or only has a stale record from a previous flight.
     """
     record = fetch_flight_record(icao24)
     if record is None:
         return None
-    arr = (record.get("estArrivalAirport")   or "").strip().upper()
-    dep = (record.get("estDepartureAirport") or "").strip().upper()
-    eta = record.get("lastSeen")
-    return FlightRoute(dep=dep, arr=arr, eta_ts=eta, source="OpenSky")
+    return fetch_route_from_opensky_record(record)
 
 
 def fetch_aircraft_from_opensky(icao24: str) -> Aircraft:
@@ -515,12 +536,21 @@ def _fleet_hint(icao24: str) -> Aircraft:
     return Aircraft()
 
 
-def resolve_aircraft(icao24: str, fa_aircraft: Aircraft | None = None) -> Aircraft:
+def resolve_aircraft(
+    icao24:            str,
+    fa_aircraft:       Aircraft | None = None,
+    opensky_reachable: bool = True,
+) -> Aircraft:
     """
     Build the best possible Aircraft record by merging data from multiple sources.
-    Priority: OpenSky > hexdb.io > FlightAware scrape > fleet prefix hints.
+    Priority: OpenSky metadata > hexdb.io > FlightAware scrape > fleet prefix hints.
+
+    Set opensky_reachable=False when the OpenSky flight endpoint already timed out
+    this run — the metadata endpoint will likely be unavailable too, so we skip it.
     """
-    result = fetch_aircraft_from_opensky(icao24)
+    result = Aircraft()
+    if opensky_reachable:
+        result = fetch_aircraft_from_opensky(icao24)
     if result.is_empty():
         result.merge(_fetch_aircraft_from_hexdb(icao24))
     if result.is_empty():
@@ -531,42 +561,47 @@ def resolve_aircraft(icao24: str, fa_aircraft: Aircraft | None = None) -> Aircra
 
 # ─── Route resolver ───────────────────────────────────────────────────────────
 
-def resolve_route(callsign: str, icao24: str) -> tuple[FlightRoute | None, Aircraft, bool]:
+def resolve_route(callsign: str, icao24: str) -> tuple[FlightRoute | None, Aircraft, bool, dict | None]:
     """
     Try to determine the flight route from all available sources in order.
-    Also returns any Aircraft metadata gathered as a side-effect of scraping FA.
+    Also returns any Aircraft metadata gathered as a side-effect of scraping FA,
+    and the raw OpenSky flight record (for first_seen extraction) if available.
 
-    Returns (route, aircraft, fa_only) where:
+    Returns (route, aircraft, fa_only, opensky_record) where:
     - route is None if all sources failed
     - fa_only is True when the destination came from FlightAware scraping alone
-      (less reliable — Poland destinations from FA-only require one confirmation run)
+    - opensky_record is the raw dict from OpenSky or None
     """
-    fa_aircraft = Aircraft()
+    fa_aircraft  = Aircraft()
+    osn_record   = fetch_flight_record(icao24)
 
     # Source 1: OpenSky (most authoritative, but has ~1h delay and occasional downtime)
-    route = fetch_route_from_opensky(icao24)
-    if route and route.dest_known:
-        return route, fa_aircraft, False
+    if osn_record:
+        route = fetch_route_from_opensky_record(osn_record)
+        if route and route.dest_known:
+            return route, fa_aircraft, False, osn_record
+
+    partial_route = fetch_route_from_opensky_record(osn_record) if osn_record else None
 
     # Source 2: aviationstack
     route_as = fetch_route_from_aviationstack(callsign)
     if route_as and route_as.dest_known:
         # Preserve departure from OpenSky if aviationstack didn't have it
-        if route and route.dep and not route_as.dep:
-            route_as.dep = route.dep
-        return route_as, fa_aircraft, False
+        if partial_route and partial_route.dep and not route_as.dep:
+            route_as.dep = partial_route.dep
+        return route_as, fa_aircraft, False, osn_record
 
     # Source 3: FlightAware scrape (also yields aircraft metadata for free)
     fa_result = fetch_from_flightaware(callsign)
     fa_aircraft = fa_result.aircraft
     if fa_result.route and fa_result.route.dest_known:
-        if route and route.dep and not fa_result.route.dep:
-            fa_result.route.dep = route.dep
-        return fa_result.route, fa_aircraft, True   # fa_only=True
+        if partial_route and partial_route.dep and not fa_result.route.dep:
+            fa_result.route.dep = partial_route.dep
+        return fa_result.route, fa_aircraft, True, osn_record   # fa_only=True
 
     # All sources exhausted — return partial route if at least dep is known
-    partial = route or FlightRoute()
-    return (partial if partial.dep else None), fa_aircraft, False
+    partial = partial_route or FlightRoute()
+    return (partial if partial.dep else None), fa_aircraft, False, osn_record
 
 
 # ─── Alert email ──────────────────────────────────────────────────────────────
@@ -646,7 +681,7 @@ def build_email(
         <a href="https://www.flightaware.com/live/flight/{callsign}"
            style="display:inline-block;background:#1a56db;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">FlightAware</a>
-        <a href="https://www.flightradar24.com/{callsign}"
+        <a href="https://www.flightradar24.com/data/aircraft/{icao24}"
            style="display:inline-block;background:#e26f24;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">FlightRadar24</a>
         <a href="https://globe.adsbexchange.com/?icao={icao24}"
@@ -723,7 +758,7 @@ def process_flight(callsign: str, icao24: str, state: State) -> str | None:
     Returns 'sent', 'dedup', 'error', 'pending' (added to queue), or 'skip'.
     """
     print(f"\n[{callsign}] Resolving route (icao24={icao24})...")
-    route, fa_aircraft, fa_only = resolve_route(callsign, icao24)
+    route, fa_aircraft, fa_only, osn_record = resolve_route(callsign, icao24)
     time.sleep(1)   # be polite to APIs
 
     if route is None:
@@ -743,9 +778,8 @@ def process_flight(callsign: str, icao24: str, state: State) -> str | None:
         state.add_pending(icao24, callsign, fa_unconfirmed_dest=route.arr)
         return "pending"
 
-    aircraft = resolve_aircraft(icao24, fa_aircraft)
-    record = fetch_flight_record(icao24)
-    first_seen = record.get("firstSeen") if record else None
+    aircraft   = resolve_aircraft(icao24, fa_aircraft, opensky_reachable=osn_record is not None)
+    first_seen = osn_record.get("firstSeen") if osn_record else None
 
     return send_alert(callsign, icao24, route, first_seen, state, aircraft)
 
@@ -766,22 +800,21 @@ def process_pending_flight(
         return "skip"
 
     print(f"[pending] {callsign} ({icao24}) — retrying route lookup...")
-    route, fa_aircraft, fa_only = resolve_route(callsign, icao24)
+    route, fa_aircraft, fa_only, osn_record = resolve_route(callsign, icao24)
     time.sleep(1)
 
     # If we had an FA-unconfirmed Poland destination, check if it's now confirmed
     if entry.fa_unconfirmed_dest:
-        if route and route.dest_known and not fa_only:
-            # Confirmed by a reliable source — use the confirmed route
+        if route is None or not route.dest_known:
+            # No data from any source this run — keep waiting
+            print(f"[pending] {callsign} — FA destination {entry.fa_unconfirmed_dest} still unconfirmed, keeping in queue")
+            return "still_pending"
+        if not fa_only:
+            # Confirmed by a reliable source
             print(f"[pending] {callsign} — FA destination confirmed by {route.source}: {route.arr}")
-        elif route and route.dest_known and fa_only:
-            # Still only FA — alert anyway to avoid indefinite delay
-            print(f"[pending] {callsign} — FA destination still unconfirmed, alerting anyway: {route.arr}")
         else:
-            # No reliable confirmation — treat FA suggestion as wrong, remove
-            print(f"[pending] {callsign} — FA destination {entry.fa_unconfirmed_dest} not confirmed, discarding")
-            state.remove_pending(icao24)
-            return "skip"
+            # Still only FA after another run — alert anyway to avoid indefinite delay
+            print(f"[pending] {callsign} — FA destination still unconfirmed after retry, alerting anyway: {route.arr}")
 
     if route is None or not route.dest_known:
         print(f"[pending] {callsign} — destination still unknown")
@@ -794,9 +827,8 @@ def process_pending_flight(
         state.remove_pending(icao24)
         return "skip"
 
-    aircraft      = resolve_aircraft(icao24, fa_aircraft)
-    record        = fetch_flight_record(icao24)
-    first_seen    = record.get("firstSeen") if record else None
+    aircraft      = resolve_aircraft(icao24, fa_aircraft, opensky_reachable=osn_record is not None)
+    first_seen    = osn_record.get("firstSeen") if osn_record else None
     pending_since = entry.first_added[:16].replace("T", " ") + " UTC"
 
     result = send_alert(callsign, icao24, route, first_seen, state, aircraft, pending_since)
