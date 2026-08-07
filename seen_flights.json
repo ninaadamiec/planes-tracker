@@ -17,14 +17,9 @@
     "ADB503F_OJAM_EPWR_2026-08-07": "2026-08-07T10:01:04.892805+00:00"
   },
   "pending": {
-    "a4c2ff": {
-      "callsign": "CMB406",
-      "first_added": "2026-08-07T10:20:29.842166+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "50801b": {
       "callsign": "ADB503F",
-      "first_added": "2026-08-07T10:40:42.119636+00:00",
+      "first_added": "2026-08-07T11:01:00.709775+00:00",
       "fa_unconfirmed_dest": "EPWR"
     }
   }
