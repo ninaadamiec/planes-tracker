@@ -13,5 +13,16 @@
     "ADB503F_OJAM_EPWR_2026-08-07": "2026-08-07T10:01:04.892805+00:00",
     "CMB481_KPSM_EPRZ_2026-08-08": "2026-08-08T05:00:58.369521+00:00"
   },
-  "pending": {}
+  "pending": {
+    "152c97": {
+      "callsign": "VDA408",
+      "first_added": "2026-08-08T18:40:30.694114+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "a98edc": {
+      "callsign": "CMB488",
+      "first_added": "2026-08-08T18:40:32.187321+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
+    }
+  }
 }
