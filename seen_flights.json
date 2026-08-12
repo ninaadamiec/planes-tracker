@@ -32,6 +32,11 @@
       "callsign": "ADB327F",
       "first_added": "2026-08-12T08:40:32.526835+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a99293": {
+      "callsign": "CMB482",
+      "first_added": "2026-08-12T09:20:36.610367+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
