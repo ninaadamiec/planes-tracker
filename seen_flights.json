@@ -16,14 +16,14 @@
     "CMB480_KPSM_EPRZ_2026-08-13": "2026-08-13T10:01:05.282247+00:00"
   },
   "pending": {
-    "50801c": {
-      "callsign": "ADB526F",
-      "first_added": "2026-08-13T10:01:06.662733+00:00",
+    "152c98": {
+      "callsign": "VDA8047",
+      "first_added": "2026-08-13T10:40:38.454319+00:00",
       "fa_unconfirmed_dest": ""
     },
     "a5fc42": {
       "callsign": "CMB480",
-      "first_added": "2026-08-13T10:32:41.386412+00:00",
+      "first_added": "2026-08-13T10:40:39.956700+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
