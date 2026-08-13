@@ -629,6 +629,7 @@ def build_email(
     header_text    = "flight to Poland" if is_poland else f"flight ({route.arr or 'unknown destination'})"
     dest_row_label = "To 🇵🇱" if is_poland else "To"
     source_badge   = f'<span style="background:#6b7280;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">{route.source}</span>'
+    fr24_url       = f"https://www.flightradar24.com/{'data/aircraft/' + aircraft.reg if aircraft.reg else callsign}"
     now_str        = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
     def row(label: str, value: str, bg: str = "#f3f4f6", extra_td: str = "") -> str:
@@ -681,7 +682,7 @@ def build_email(
         <a href="https://www.flightaware.com/live/flight/{callsign}"
            style="display:inline-block;background:#1a56db;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">FlightAware</a>
-        <a href="https://www.flightradar24.com/data/aircraft/{icao24}"
+        <a href="{fr24_url}"
            style="display:inline-block;background:#e26f24;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">FlightRadar24</a>
         <a href="https://globe.adsbexchange.com/?icao={icao24}"
