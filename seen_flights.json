@@ -17,10 +17,10 @@
     "CMB489_KDOV_EPRZ_2026-08-12": "2026-08-12T19:20:30.911762+00:00"
   },
   "pending": {
-    "508015": {
-      "callsign": "ADB327F",
-      "first_added": "2026-08-13T08:40:34.694943+00:00",
-      "fa_unconfirmed_dest": ""
+    "a5fc42": {
+      "callsign": "CMB480",
+      "first_added": "2026-08-13T09:40:39.938972+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
