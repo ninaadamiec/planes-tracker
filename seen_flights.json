@@ -13,10 +13,10 @@
     "ADB5527_LFBP__2026-08-14": "2026-08-14T11:20:33.275355+00:00"
   },
   "pending": {
-    "508003": {
-      "callsign": "ADB5527",
-      "first_added": "2026-08-15T22:00:55.995314+00:00",
-      "fa_unconfirmed_dest": ""
+    "a6329d": {
+      "callsign": "CMB490",
+      "first_added": "2026-08-15T23:20:29.960662+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
