@@ -20,9 +20,24 @@
       "first_added": "2026-08-16T06:40:31.083841+00:00",
       "fa_unconfirmed_dest": ""
     },
+    "508003": {
+      "callsign": "ADB5528",
+      "first_added": "2026-08-16T07:01:00.623803+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "a6229d": {
+      "callsign": "CMB490",
+      "first_added": "2026-08-16T07:01:02.028854+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
+    },
+    "a63299": {
+      "callsign": "CMB490",
+      "first_added": "2026-08-16T07:01:03.432789+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
+    },
     "a6329d": {
       "callsign": "CMB490",
-      "first_added": "2026-08-16T06:43:19.015533+00:00",
+      "first_added": "2026-08-16T07:01:04.738954+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
