@@ -12,6 +12,11 @@
       "callsign": "ADB712F",
       "first_added": "2026-08-21T08:20:32.741269+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a62ee6": {
+      "callsign": "CMB491",
+      "first_added": "2026-08-21T09:40:31.221648+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
