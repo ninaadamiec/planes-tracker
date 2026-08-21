@@ -8,14 +8,9 @@
     "CMB491_KDOV_EPRZ_2026-08-21": "2026-08-21T09:54:44.871554+00:00"
   },
   "pending": {
-    "50801c": {
-      "callsign": "ADB713F",
-      "first_added": "2026-08-21T16:20:47.163788+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "a62ee6": {
       "callsign": "CMB491",
-      "first_added": "2026-08-21T16:40:39.420331+00:00",
+      "first_added": "2026-08-21T17:01:07.698606+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
