@@ -10,14 +10,9 @@
     "CMB466_KDOV_EPRZ_2026-08-22": "2026-08-22T10:40:32.512068+00:00"
   },
   "pending": {
-    "a4c2ff": {
-      "callsign": "CMB406",
-      "first_added": "2026-08-22T15:40:29.939451+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "a82aa0": {
       "callsign": "CMB466",
-      "first_added": "2026-08-22T17:28:24.002240+00:00",
+      "first_added": "2026-08-22T17:40:39.898465+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
