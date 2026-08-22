@@ -14,6 +14,11 @@
       "callsign": "CMB406",
       "first_added": "2026-08-22T15:40:29.939451+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a82aa0": {
+      "callsign": "CMB466",
+      "first_added": "2026-08-22T15:55:16.178889+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
