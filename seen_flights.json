@@ -12,14 +12,9 @@
     "CMB318_KMCF_EPRZ_2026-08-26": "2026-08-26T20:12:44.564412+00:00"
   },
   "pending": {
-    "50801f": {
-      "callsign": "ADB5542",
-      "first_added": "2026-08-26T18:20:43.071811+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "aa01a2": {
       "callsign": "CMB318",
-      "first_added": "2026-08-26T21:20:33.971268+00:00",
+      "first_added": "2026-08-26T21:40:38.456470+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
