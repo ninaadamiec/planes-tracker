@@ -21,8 +21,13 @@
     },
     "a97639": {
       "callsign": "CMB467",
-      "first_added": "2026-08-27T20:01:00.454058+00:00",
+      "first_added": "2026-08-27T20:20:30.234796+00:00",
       "fa_unconfirmed_dest": "EPRZ"
+    },
+    "152c98": {
+      "callsign": "VDA8038",
+      "first_added": "2026-08-27T20:20:34.305481+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
