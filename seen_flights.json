@@ -13,9 +13,14 @@
     "CMB318_KMCF_EPRZ_2026-08-27": "2026-08-27T04:01:01.841496+00:00"
   },
   "pending": {
+    "a4c2ff": {
+      "callsign": "CMB4O6",
+      "first_added": "2026-08-27T04:40:30.289603+00:00",
+      "fa_unconfirmed_dest": ""
+    },
     "aa01a2": {
       "callsign": "CMB318",
-      "first_added": "2026-08-27T04:20:33.189592+00:00",
+      "first_added": "2026-08-27T04:40:31.752112+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
