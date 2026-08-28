@@ -15,14 +15,9 @@
     "ADB543F_LBSB__2026-08-27": "2026-08-28T00:01:06.182071+00:00"
   },
   "pending": {
-    "508003": {
-      "callsign": "ADB5546",
-      "first_added": "2026-08-27T21:40:31.365733+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "a97639": {
       "callsign": "CMB467",
-      "first_added": "2026-08-28T00:40:38.439758+00:00",
+      "first_added": "2026-08-28T01:00:58.455569+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
