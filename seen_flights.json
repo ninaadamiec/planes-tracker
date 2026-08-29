@@ -17,6 +17,11 @@
       "callsign": "ADB5547",
       "first_added": "2026-08-29T20:40:26.532846+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a5277d": {
+      "callsign": "CMB492",
+      "first_added": "2026-08-29T21:40:32.572521+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
