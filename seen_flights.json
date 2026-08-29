@@ -21,7 +21,12 @@
     },
     "a5277d": {
       "callsign": "CMB492",
-      "first_added": "2026-08-29T22:40:27.858331+00:00",
+      "first_added": "2026-08-29T23:00:58.748114+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
+    },
+    "a9f67d": {
+      "callsign": "CMB322",
+      "first_added": "2026-08-29T23:01:00.468479+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
