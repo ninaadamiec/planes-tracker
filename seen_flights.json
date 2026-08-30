@@ -27,6 +27,11 @@
       "callsign": "ADB5544",
       "first_added": "2026-08-30T16:01:00.406479+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "152c98": {
+      "callsign": "VDA8040",
+      "first_added": "2026-08-30T16:40:33.529598+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
