@@ -17,14 +17,14 @@
     "ADB7114_EINN__2026-08-30": "2026-08-30T01:20:32.401812+00:00"
   },
   "pending": {
-    "a5277d": {
+    "a52779": {
       "callsign": "CMB492",
-      "first_added": "2026-08-30T05:00:59.454087+00:00",
+      "first_added": "2026-08-30T05:20:35.994580+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     },
     "a9f67d": {
       "callsign": "CMB322",
-      "first_added": "2026-08-30T05:01:03.527865+00:00",
+      "first_added": "2026-08-30T05:20:39.342002+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
