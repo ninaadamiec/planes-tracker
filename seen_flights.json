@@ -18,6 +18,11 @@
       "callsign": "ADB3146",
       "first_added": "2026-09-04T05:40:27.746067+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "508003": {
+      "callsign": "ADB5552",
+      "first_added": "2026-09-04T07:20:31.987125+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
