@@ -15,19 +15,9 @@
     "ADB7119_KPSM_EPRZ_2026-09-05": "2026-09-05T01:41:04.652416+00:00"
   },
   "pending": {
-    "acfc26": {
-      "callsign": "CMB493",
-      "first_added": "2026-09-05T02:20:36.669091+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
-    "508015": {
-      "callsign": "ADB7119",
-      "first_added": "2026-09-05T02:20:38.249747+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
     "a983b7": {
       "callsign": "CMB327",
-      "first_added": "2026-09-05T02:20:41.546759+00:00",
+      "first_added": "2026-09-05T02:40:30.122634+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
