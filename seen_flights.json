@@ -19,12 +19,17 @@
   "pending": {
     "acfc26": {
       "callsign": "CMB493",
-      "first_added": "2026-09-05T08:01:01.626821+00:00",
+      "first_added": "2026-09-05T08:20:28.332980+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     },
     "508015": {
       "callsign": "ADB7119",
-      "first_added": "2026-09-05T08:01:03.231256+00:00",
+      "first_added": "2026-09-05T08:20:29.672086+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
+    },
+    "a6eb54": {
+      "callsign": "CMB324",
+      "first_added": "2026-09-05T08:20:32.403571+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
