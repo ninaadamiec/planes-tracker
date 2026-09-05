@@ -17,7 +17,12 @@
   "pending": {
     "a983b7": {
       "callsign": "CMB327",
-      "first_added": "2026-09-05T03:00:58.154883+00:00",
+      "first_added": "2026-09-05T03:20:27.653225+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
+    },
+    "a6eb54": {
+      "callsign": "CMB324",
+      "first_added": "2026-09-05T03:20:29.275500+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
