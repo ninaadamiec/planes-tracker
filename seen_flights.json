@@ -9,5 +9,16 @@
     "CMB493_KCHS_EPRZ_2026-09-05": "2026-09-05T06:40:26.873723+00:00",
     "ADB343F_EDDP__2026-09-05": "2026-09-06T00:40:26.211457+00:00"
   },
-  "pending": {}
+  "pending": {
+    "50801c": {
+      "callsign": "ADB5559",
+      "first_added": "2026-09-08T23:20:33.368808+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "a6eb54": {
+      "callsign": "CMB323",
+      "first_added": "2026-09-08T23:20:36.562929+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
+    }
+  }
 }
