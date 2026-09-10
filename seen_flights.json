@@ -11,10 +11,10 @@
     "CMB332_KDOV_EPRZ_2026-09-10": "2026-09-10T21:01:00.173498+00:00"
   },
   "pending": {
-    "aa5f7c": {
-      "callsign": "CMB332",
-      "first_added": "2026-09-10T22:01:00.414644+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
+    "aa95da": {
+      "callsign": "CMB187",
+      "first_added": "2026-09-10T22:20:27.158858+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
