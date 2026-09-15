@@ -8,8 +8,13 @@
   "pending": {
     "a45199": {
       "callsign": "CMB582",
-      "first_added": "2026-09-15T03:00:57.998567+00:00",
+      "first_added": "2026-09-15T03:20:29.620895+00:00",
       "fa_unconfirmed_dest": "EPPW"
+    },
+    "152c97": {
+      "callsign": "VDA8051",
+      "first_added": "2026-09-15T03:20:32.371386+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
