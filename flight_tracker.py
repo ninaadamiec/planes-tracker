@@ -703,12 +703,18 @@ def build_email(
 
 
 def _flight_key(callsign: str, route: FlightRoute, first_seen: int | None) -> str:
+    """
+    Unique identifier for a flight used to prevent duplicate alerts.
+    Intentionally excludes departure airport — OpenSky often fills it in late,
+    which would otherwise produce different keys for the same physical flight
+    and trigger a second alert email.
+    """
     dep_date = (
         datetime.fromtimestamp(first_seen, tz=timezone.utc).strftime("%Y-%m-%d")
         if first_seen
         else datetime.now(timezone.utc).strftime("%Y-%m-%d")
     )
-    return f"{callsign}_{route.dep}_{route.arr}_{dep_date}"
+    return f"{callsign}_{route.arr}_{dep_date}"
 
 
 def send_alert(
@@ -763,6 +769,14 @@ def process_flight(callsign: str, icao24: str, state: State) -> str | None:
     time.sleep(1)   # be polite to APIs
 
     if route is None:
+        if any(callsign.startswith(p) for p in ALWAYS_ALERT_PREFIXES):
+            # No destination data from any source, but this operator always warrants an alert.
+            # Send immediately with unknown destination; don't add to pending — the user
+            # will check the links. A follow-up alert is not sent (dedup key has no arr).
+            print(f"[{callsign}] No route data — alerting immediately (always-alert operator)")
+            unknown_route = FlightRoute(source="unknown")
+            aircraft      = resolve_aircraft(icao24, fa_aircraft, opensky_reachable=osn_record is not None)
+            return send_alert(callsign, icao24, unknown_route, None, state, aircraft)
         print(f"[{callsign}] No route data from any source — adding to pending queue")
         state.add_pending(icao24, callsign)
         return "pending"
@@ -781,8 +795,14 @@ def process_flight(callsign: str, icao24: str, state: State) -> str | None:
 
     aircraft   = resolve_aircraft(icao24, fa_aircraft, opensky_reachable=osn_record is not None)
     first_seen = osn_record.get("firstSeen") if osn_record else None
+    result     = send_alert(callsign, icao24, route, first_seen, state, aircraft)
 
-    return send_alert(callsign, icao24, route, first_seen, state, aircraft)
+    # If alerted with unknown destination, still queue for destination tracking
+    # (won't re-alert — dedup key matches; just gives us a chance to log the destination)
+    if result == "sent" and not route.dest_known and icao24 not in state.pending:
+        state.add_pending(icao24, callsign)
+
+    return result
 
 
 def process_pending_flight(
@@ -818,6 +838,16 @@ def process_pending_flight(
             print(f"[pending] {callsign} — FA destination still unconfirmed after retry, alerting anyway: {route.arr}")
 
     if route is None or not route.dest_known:
+        if any(callsign.startswith(p) for p in ALWAYS_ALERT_PREFIXES):
+            # Still no destination after queuing — alert now rather than risk losing the flight
+            print(f"[pending] {callsign} — destination still unknown, alerting immediately (always-alert operator)")
+            unknown_route = FlightRoute(source="unknown")
+            aircraft      = resolve_aircraft(icao24, fa_aircraft, opensky_reachable=osn_record is not None)
+            pending_since = entry.first_added[:16].replace("T", " ") + " UTC"
+            result = send_alert(callsign, icao24, unknown_route, None, state, aircraft, pending_since)
+            if result in ("sent", "dedup"):
+                state.remove_pending(icao24)
+            return result
         print(f"[pending] {callsign} — destination still unknown")
         return "still_pending"
 
