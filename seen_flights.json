@@ -9,8 +9,13 @@
   "pending": {
     "a95c38": {
       "callsign": "CMB333",
-      "first_added": "2026-09-16T04:01:02.653831+00:00",
+      "first_added": "2026-09-16T04:20:29.839938+00:00",
       "fa_unconfirmed_dest": "EPRZ"
+    },
+    "1540a1": {
+      "callsign": "VDA7994",
+      "first_added": "2026-09-16T04:20:31.605319+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
