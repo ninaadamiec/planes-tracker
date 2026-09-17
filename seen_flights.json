@@ -8,15 +8,15 @@
     "ADB7122_EPRZ_2026-09-16": "2026-09-16T20:20:37.460863+00:00"
   },
   "pending": {
-    "50801f": {
-      "callsign": "ADB7122",
-      "first_added": "2026-09-17T01:40:33.850737+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
     "152c98": {
       "callsign": "VDA108",
       "first_added": "2026-09-17T01:40:35.677550+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "50801f": {
+      "callsign": "ADB7122",
+      "first_added": "2026-09-17T02:01:01.366886+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
