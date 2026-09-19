@@ -16,15 +16,15 @@
     "ADB5570__2026-09-19": "2026-09-19T05:21:03.843912+00:00"
   },
   "pending": {
-    "a55e46": {
-      "callsign": "CMB335",
-      "first_added": "2026-09-19T08:00:50.993958+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
     "50808f": {
       "callsign": "CVK7050",
       "first_added": "2026-09-19T08:00:52.389391+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a55e46": {
+      "callsign": "CMB335",
+      "first_added": "2026-09-19T08:20:33.755964+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
