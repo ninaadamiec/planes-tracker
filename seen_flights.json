@@ -22,6 +22,11 @@
       "callsign": "CVK7002",
       "first_added": "2026-09-20T01:20:28.465181+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a97282": {
+      "callsign": "CMB337",
+      "first_added": "2026-09-20T01:40:27.176447+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
