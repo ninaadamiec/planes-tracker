@@ -30,10 +30,20 @@
     "CMB339_EPRZ_2026-09-22": "2026-09-22T03:00:57.348142+00:00"
   },
   "pending": {
+    "5082a8": {
+      "callsign": "CVK7006",
+      "first_added": "2026-09-22T03:58:06.199594+00:00",
+      "fa_unconfirmed_dest": ""
+    },
     "a57ad0": {
       "callsign": "CMB339",
-      "first_added": "2026-09-22T03:40:30.686758+00:00",
+      "first_added": "2026-09-22T03:58:07.519087+00:00",
       "fa_unconfirmed_dest": "EPRZ"
+    },
+    "1540a1": {
+      "callsign": "VDA7990",
+      "first_added": "2026-09-22T03:58:08.981389+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
