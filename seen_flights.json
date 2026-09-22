@@ -35,15 +35,15 @@
       "first_added": "2026-09-22T03:58:06.199594+00:00",
       "fa_unconfirmed_dest": ""
     },
-    "a57ad0": {
-      "callsign": "CMB339",
-      "first_added": "2026-09-22T03:58:07.519087+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
     "1540a1": {
       "callsign": "VDA7990",
       "first_added": "2026-09-22T03:58:08.981389+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a57ad0": {
+      "callsign": "CMB339",
+      "first_added": "2026-09-22T04:01:01.834352+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
