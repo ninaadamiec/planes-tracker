@@ -36,15 +36,15 @@
     "ADB7401__2026-09-24": "2026-09-24T09:20:32.503195+00:00"
   },
   "pending": {
-    "5082a0": {
-      "callsign": "CVK7105",
-      "first_added": "2026-09-24T06:20:28.167045+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "50808f": {
       "callsign": "CVK7104",
       "first_added": "2026-09-24T10:40:25.760583+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "abba93": {
+      "callsign": "CMB340",
+      "first_added": "2026-09-24T11:20:47.705100+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
