@@ -37,10 +37,10 @@
     "ADB5580__2026-09-24": "2026-09-24T11:40:34.479067+00:00"
   },
   "pending": {
-    "abba93": {
-      "callsign": "CMB340",
-      "first_added": "2026-09-24T19:01:06.833477+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
+    "a6eb54": {
+      "callsign": "CMB187",
+      "first_added": "2026-09-24T19:17:06.852837+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
