@@ -40,11 +40,6 @@
     "ADB5580__2026-09-25": "2026-09-25T06:20:33.443210+00:00"
   },
   "pending": {
-    "5082a0": {
-      "callsign": "CVK7106",
-      "first_added": "2026-09-25T03:20:26.778339+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "5082a8": {
       "callsign": "CVK7107",
       "first_added": "2026-09-25T07:01:08.577500+00:00",
@@ -53,11 +48,6 @@
     "a3e89a": {
       "callsign": "CMB500",
       "first_added": "2026-09-25T07:40:50.287607+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "15409a": {
-      "callsign": "VDA8134",
-      "first_added": "2026-09-25T07:40:51.626633+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
