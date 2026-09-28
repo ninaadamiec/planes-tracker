@@ -36,14 +36,9 @@
     "ADB7125_EPRZ_2026-09-28": "2026-09-28T04:40:29.996302+00:00"
   },
   "pending": {
-    "abbe4a": {
-      "callsign": "CMB341",
-      "first_added": "2026-09-28T04:40:31.393211+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
     "50801c": {
       "callsign": "ADB7125",
-      "first_added": "2026-09-28T04:40:34.229931+00:00",
+      "first_added": "2026-09-28T05:00:57.424130+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
