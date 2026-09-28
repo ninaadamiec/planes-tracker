@@ -39,6 +39,11 @@
       "callsign": "CMB522",
       "first_added": "2026-09-28T00:20:27.049041+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "abbe4a": {
+      "callsign": "CMB341",
+      "first_added": "2026-09-28T02:00:59.797783+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
