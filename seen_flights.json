@@ -31,10 +31,10 @@
     "CMB349_EPRZ_2026-09-29": "2026-09-29T20:40:28.092071+00:00"
   },
   "pending": {
-    "a603b0": {
-      "callsign": "CMB349",
-      "first_added": "2026-09-29T21:00:58.971891+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
+    "152c96": {
+      "callsign": "VDA4249",
+      "first_added": "2026-09-29T21:20:28.910573+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
