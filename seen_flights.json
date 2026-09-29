@@ -33,10 +33,10 @@
     "CMB347_EPRZ_2026-09-28": "2026-09-28T18:01:01.256432+00:00"
   },
   "pending": {
-    "a506da": {
-      "callsign": "CMB315",
-      "first_added": "2026-09-28T23:40:25.541030+00:00",
-      "fa_unconfirmed_dest": ""
+    "a51e24": {
+      "callsign": "CMB347",
+      "first_added": "2026-09-29T00:01:03.721999+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
