@@ -15,9 +15,14 @@
     "CMB348_EPRZ_2026-10-03": "2026-10-03T20:20:31.426163+00:00"
   },
   "pending": {
+    "a45199": {
+      "callsign": "CMB560",
+      "first_added": "2026-10-03T20:40:28.501690+00:00",
+      "fa_unconfirmed_dest": ""
+    },
     "aa01a2": {
       "callsign": "CMB348",
-      "first_added": "2026-10-03T20:20:32.764984+00:00",
+      "first_added": "2026-10-03T20:40:29.807975+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
