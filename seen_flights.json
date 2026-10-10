@@ -25,6 +25,11 @@
       "callsign": "CMB170",
       "first_added": "2026-10-10T12:20:34.657587+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "152c96": {
+      "callsign": "VDA8158",
+      "first_added": "2026-10-10T14:00:59.593941+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
