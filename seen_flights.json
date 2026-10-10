@@ -22,20 +22,15 @@
     "CMB350_EPRZ_2026-10-10": "2026-10-10T18:40:31.445423+00:00"
   },
   "pending": {
-    "a40b24": {
-      "callsign": "CMB544",
-      "first_added": "2026-10-10T19:01:06.261030+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "a95881": {
-      "callsign": "CMB350",
-      "first_added": "2026-10-10T19:20:33.372953+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
     "a1f4c5": {
       "callsign": "CMB170",
       "first_added": "2026-10-10T19:20:34.725001+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a95881": {
+      "callsign": "CMB350",
+      "first_added": "2026-10-10T19:30:23.560282+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
