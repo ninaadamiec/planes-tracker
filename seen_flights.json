@@ -29,8 +29,13 @@
     },
     "a5f11d": {
       "callsign": "CMB568",
-      "first_added": "2026-10-15T04:01:09.197694+00:00",
+      "first_added": "2026-10-15T04:20:39.972432+00:00",
       "fa_unconfirmed_dest": "EPPO"
+    },
+    "152c96": {
+      "callsign": "VDA8143",
+      "first_added": "2026-10-15T04:20:44.431207+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
