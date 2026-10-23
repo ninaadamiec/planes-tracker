@@ -24,10 +24,15 @@
     "CMB520_EPPO_2026-10-23": "2026-10-23T06:40:37.540303+00:00"
   },
   "pending": {
-    "a5f11d": {
-      "callsign": "CMB520",
-      "first_added": "2026-10-23T08:01:06.793160+00:00",
-      "fa_unconfirmed_dest": "EPPO"
+    "508116": {
+      "callsign": "CVK7020",
+      "first_added": "2026-10-23T08:20:34.855401+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "15409a": {
+      "callsign": "VDA8177",
+      "first_added": "2026-10-23T08:20:36.344223+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
