@@ -31,13 +31,18 @@
     },
     "a9fa34": {
       "callsign": "CMB353",
-      "first_added": "2026-10-24T11:56:42.830123+00:00",
+      "first_added": "2026-10-24T12:01:06.848462+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     },
     "a8699a": {
       "callsign": "CMB502",
-      "first_added": "2026-10-24T11:56:44.250716+00:00",
+      "first_added": "2026-10-24T12:01:08.362769+00:00",
       "fa_unconfirmed_dest": "EPGD"
+    },
+    "a45199": {
+      "callsign": "CMB170",
+      "first_added": "2026-10-24T12:01:10.073028+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
