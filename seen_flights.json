@@ -26,15 +26,15 @@
     "CMB502_EPGD_2026-10-24": "2026-10-24T06:01:03.496743+00:00"
   },
   "pending": {
-    "a9fa34": {
-      "callsign": "CMB353",
-      "first_added": "2026-10-24T06:20:30.292927+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
     "a8699a": {
       "callsign": "CMB502",
-      "first_added": "2026-10-24T06:20:31.778273+00:00",
+      "first_added": "2026-10-24T06:40:34.285442+00:00",
       "fa_unconfirmed_dest": "EPGD"
+    },
+    "15409a": {
+      "callsign": "VDA8178",
+      "first_added": "2026-10-24T06:40:37.553702+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
