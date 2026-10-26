@@ -33,6 +33,11 @@
       "callsign": "VDA7159",
       "first_added": "2026-10-26T19:20:29.690108+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "aa0559": {
+      "callsign": "CMB359",
+      "first_added": "2026-10-26T19:40:33.084142+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
