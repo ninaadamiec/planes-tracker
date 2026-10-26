@@ -31,15 +31,15 @@
     "ADB716F__2026-10-26": "2026-10-26T20:01:09.327746+00:00"
   },
   "pending": {
-    "aa0559": {
-      "callsign": "CMB359",
-      "first_added": "2026-10-26T20:20:41.589745+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
     "15409a": {
       "callsign": "VDA8146",
       "first_added": "2026-10-26T20:20:43.162104+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "aa0559": {
+      "callsign": "CMB359",
+      "first_added": "2026-10-26T20:40:41.637864+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
