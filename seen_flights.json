@@ -39,6 +39,16 @@
       "callsign": "CMB187",
       "first_added": "2026-10-29T07:20:35.171738+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "50808f": {
+      "callsign": "CVK7123",
+      "first_added": "2026-10-29T07:40:33.717895+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "a5fef9": {
+      "callsign": "CMB578",
+      "first_added": "2026-10-29T07:40:36.577864+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
