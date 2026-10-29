@@ -35,11 +35,6 @@
       "first_added": "2026-10-29T07:20:30.542052+00:00",
       "fa_unconfirmed_dest": ""
     },
-    "aa9d48": {
-      "callsign": "CMB187",
-      "first_added": "2026-10-29T07:20:35.171738+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "50808f": {
       "callsign": "CVK7123",
       "first_added": "2026-10-29T07:40:33.717895+00:00",
@@ -48,6 +43,11 @@
     "a5fef9": {
       "callsign": "CMB578",
       "first_added": "2026-10-29T07:40:36.577864+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "152c98": {
+      "callsign": "VDA8098",
+      "first_added": "2026-10-29T08:01:11.537080+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
