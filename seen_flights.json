@@ -32,14 +32,9 @@
     "CMB361_EPRZ_2026-10-30": "2026-10-30T20:01:01.913409+00:00"
   },
   "pending": {
-    "152c98": {
-      "callsign": "VDA8100",
-      "first_added": "2026-10-30T20:20:41.679141+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "a97639": {
       "callsign": "CMB361",
-      "first_added": "2026-10-30T20:40:41.787219+00:00",
+      "first_added": "2026-10-30T21:01:10.271399+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
