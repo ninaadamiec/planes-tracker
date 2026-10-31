@@ -32,10 +32,10 @@
     "ADB596F_EPWR_2026-10-31": "2026-10-31T16:40:35.282684+00:00"
   },
   "pending": {
-    "50801c": {
-      "callsign": "ADB596F",
-      "first_added": "2026-10-31T17:40:37.709959+00:00",
-      "fa_unconfirmed_dest": "EPWR"
+    "152c96": {
+      "callsign": "VDA408",
+      "first_added": "2026-10-31T17:55:11.176984+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
