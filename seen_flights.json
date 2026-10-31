@@ -33,12 +33,12 @@
   "pending": {
     "a96639": {
       "callsign": "CMB361",
-      "first_added": "2026-10-31T04:20:30.372047+00:00",
+      "first_added": "2026-10-31T04:40:27.782674+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     },
-    "a97639": {
+    "a97631": {
       "callsign": "CMB361",
-      "first_added": "2026-10-31T04:20:31.958869+00:00",
+      "first_added": "2026-10-31T04:40:29.159770+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
