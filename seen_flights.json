@@ -30,14 +30,9 @@
     "ADB3155__2026-10-31": "2026-10-31T19:20:33.950774+00:00"
   },
   "pending": {
-    "152adf": {
-      "callsign": "VDA8176",
-      "first_added": "2026-11-01T08:40:31.066230+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "ac633f": {
-      "callsign": "CMB586",
-      "first_added": "2026-11-01T09:01:09.130869+00:00",
+    "1540a1": {
+      "callsign": "VDA8163",
+      "first_added": "2026-11-01T09:20:31.762947+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
