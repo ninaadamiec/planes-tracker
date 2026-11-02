@@ -32,14 +32,9 @@
     "ADB3156__2026-11-01": "2026-11-01T22:01:06.227372+00:00"
   },
   "pending": {
-    "a506da": {
-      "callsign": "CMB226",
-      "first_added": "2026-11-01T23:01:13.683968+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "a4e7c9": {
       "callsign": "CMB358",
-      "first_added": "2026-11-02T01:49:02.273630+00:00",
+      "first_added": "2026-11-02T02:01:04.076521+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
