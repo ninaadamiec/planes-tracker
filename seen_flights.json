@@ -29,16 +29,5 @@
     "CMB355_EPRZ_2026-11-04": "2026-11-04T02:40:39.374995+00:00",
     "CMB592_EPPO_2026-11-04": "2026-11-04T03:01:05.713625+00:00"
   },
-  "pending": {
-    "a45199": {
-      "callsign": "CMB592",
-      "first_added": "2026-11-04T03:20:34.657181+00:00",
-      "fa_unconfirmed_dest": "EPPO"
-    },
-    "a96ecb": {
-      "callsign": "CMB355",
-      "first_added": "2026-11-04T03:20:36.178835+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    }
-  }
+  "pending": {}
 }
