@@ -33,8 +33,13 @@
     },
     "a5f11d": {
       "callsign": "CMB538",
-      "first_added": "2026-11-06T05:01:13.165577+00:00",
+      "first_added": "2026-11-06T05:20:34.397399+00:00",
       "fa_unconfirmed_dest": "EPPO"
+    },
+    "a62778": {
+      "callsign": "CMB365",
+      "first_added": "2026-11-06T05:20:35.742738+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
