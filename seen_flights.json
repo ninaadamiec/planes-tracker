@@ -27,14 +27,9 @@
     "CMB365_EPRZ_2026-11-05": "2026-11-06T00:01:08.943688+00:00"
   },
   "pending": {
-    "a5f11d": {
-      "callsign": "CMB538",
-      "first_added": "2026-11-06T00:20:35.230097+00:00",
-      "fa_unconfirmed_dest": "EPPO"
-    },
     "a62778": {
       "callsign": "CMB365",
-      "first_added": "2026-11-06T00:20:36.593517+00:00",
+      "first_added": "2026-11-06T00:40:35.647817+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
