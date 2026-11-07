@@ -28,9 +28,14 @@
     "CMB366_EPRZ_2026-11-07": "2026-11-07T04:40:33.095235+00:00"
   },
   "pending": {
+    "5082a8": {
+      "callsign": "CVK7155",
+      "first_added": "2026-11-07T07:01:04.206369+00:00",
+      "fa_unconfirmed_dest": ""
+    },
     "a9876e": {
       "callsign": "CMB366",
-      "first_added": "2026-11-07T06:40:31.524345+00:00",
+      "first_added": "2026-11-07T07:01:05.782500+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
