@@ -33,6 +33,16 @@
       "callsign": "CVK7020",
       "first_added": "2026-11-07T09:40:33.523949+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "5082a8": {
+      "callsign": "CVK7155",
+      "first_added": "2026-11-07T11:01:08.721914+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "152c96": {
+      "callsign": "VDA8213",
+      "first_added": "2026-11-07T11:01:10.246253+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
