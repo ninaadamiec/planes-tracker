@@ -29,9 +29,19 @@
     "ADB7132__2026-11-08": "2026-11-08T07:01:10.822549+00:00"
   },
   "pending": {
+    "152c98": {
+      "callsign": "VDA517",
+      "first_added": "2026-11-08T10:40:33.754183+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "15409f": {
+      "callsign": "VDA8181",
+      "first_added": "2026-11-08T10:40:35.523465+00:00",
+      "fa_unconfirmed_dest": ""
+    },
     "ab9639": {
       "callsign": "CMB598",
-      "first_added": "2026-11-08T10:20:32.489569+00:00",
+      "first_added": "2026-11-08T10:40:37.122206+00:00",
       "fa_unconfirmed_dest": "EPPO"
     }
   }
