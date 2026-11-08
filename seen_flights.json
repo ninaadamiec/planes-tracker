@@ -31,6 +31,11 @@
       "callsign": "CVK7156",
       "first_added": "2026-11-08T03:40:30.258767+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "ab9639": {
+      "callsign": "CMB598",
+      "first_added": "2026-11-08T05:01:06.970218+00:00",
+      "fa_unconfirmed_dest": "EPPO"
     }
   }
 }
