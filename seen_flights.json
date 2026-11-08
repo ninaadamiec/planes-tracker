@@ -27,14 +27,9 @@
     "CMB598_EPPO_2026-11-07": "2026-11-08T01:01:05.247062+00:00"
   },
   "pending": {
-    "15409a": {
-      "callsign": "VDA8160",
-      "first_added": "2026-11-08T02:01:03.325636+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "ab9639": {
       "callsign": "CMB598",
-      "first_added": "2026-11-08T02:01:05.060278+00:00",
+      "first_added": "2026-11-08T02:20:34.635404+00:00",
       "fa_unconfirmed_dest": "EPPO"
     }
   }
