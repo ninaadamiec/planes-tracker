@@ -25,14 +25,14 @@
     "ADB521F__2026-11-10": "2026-11-10T09:40:36.062291+00:00"
   },
   "pending": {
-    "5082a8": {
-      "callsign": "CVK7041",
-      "first_added": "2026-11-10T10:01:09.325791+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "508116": {
       "callsign": "CVK7074",
       "first_added": "2026-11-10T11:20:34.905437+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "152adf": {
+      "callsign": "VDA8172",
+      "first_added": "2026-11-10T12:20:38.073347+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
