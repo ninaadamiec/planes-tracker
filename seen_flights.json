@@ -23,10 +23,10 @@
     "CMB368_EPRZ_2026-11-12": "2026-11-12T23:01:08.804407+00:00"
   },
   "pending": {
-    "a806d8": {
-      "callsign": "CMB368",
-      "first_added": "2026-11-13T03:20:35.098547+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
+    "a1f3aa": {
+      "callsign": "CMB546",
+      "first_added": "2026-11-13T03:40:41.735744+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
