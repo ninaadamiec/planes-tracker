@@ -24,6 +24,11 @@
       "callsign": "CMB187",
       "first_added": "2026-11-14T02:20:32.148360+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a9f67d": {
+      "callsign": "CMB369",
+      "first_added": "2026-11-14T02:40:31.392209+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
