@@ -19,10 +19,10 @@
     "CMB372_EPRZ_2026-11-16": "2026-11-16T09:40:33.864054+00:00"
   },
   "pending": {
-    "a6eb54": {
-      "callsign": "CMB372",
-      "first_added": "2026-11-16T09:40:35.191943+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
+    "152adf": {
+      "callsign": "VDA115",
+      "first_added": "2026-11-16T10:01:06.789855+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
