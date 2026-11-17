@@ -25,15 +25,15 @@
     "CMB542_EPPO_2026-11-17": "2026-11-17T04:01:05.448726+00:00"
   },
   "pending": {
-    "152c97": {
-      "callsign": "VDA8106",
-      "first_added": "2026-11-17T03:40:44.466253+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "a5e9af": {
       "callsign": "CMB542",
       "first_added": "2026-11-17T04:01:10.598195+00:00",
       "fa_unconfirmed_dest": "EPPO"
+    },
+    "aae1ea": {
+      "callsign": "CMB568",
+      "first_added": "2026-11-17T04:20:41.772334+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
