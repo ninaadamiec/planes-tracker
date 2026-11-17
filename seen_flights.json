@@ -24,21 +24,5 @@
     "CMB0375_EPRZ_2026-11-17": "2026-11-17T21:01:10.622668+00:00",
     "CMB375_EPRZ_2026-11-17": "2026-11-17T21:40:33.580150+00:00"
   },
-  "pending": {
-    "aa95da": {
-      "callsign": "CMB375",
-      "first_added": "2026-11-17T21:40:34.915150+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
-    "a5e9af": {
-      "callsign": "CMB542",
-      "first_added": "2026-11-17T22:01:16.337044+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "a5ed66": {
-      "callsign": "CMB522",
-      "first_added": "2026-11-17T22:01:17.641164+00:00",
-      "fa_unconfirmed_dest": ""
-    }
-  }
+  "pending": {}
 }
