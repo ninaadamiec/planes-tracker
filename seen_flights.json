@@ -25,15 +25,10 @@
     "CMB542_EPPW_2026-11-17": "2026-11-17T09:40:35.634110+00:00"
   },
   "pending": {
-    "a45199": {
-      "callsign": "CMB536",
-      "first_added": "2026-11-17T07:01:03.043538+00:00",
+    "5082a8": {
+      "callsign": "CVK7017",
+      "first_added": "2026-11-17T10:01:03.169643+00:00",
       "fa_unconfirmed_dest": ""
-    },
-    "a5e9af": {
-      "callsign": "CMB542",
-      "first_added": "2026-11-17T09:40:37.028754+00:00",
-      "fa_unconfirmed_dest": "EPPW"
     }
   }
 }
