@@ -24,5 +24,21 @@
     "ADB562F__2026-11-17": "2026-11-17T03:01:06.651332+00:00",
     "CMB542_EPPO_2026-11-17": "2026-11-17T04:01:05.448726+00:00"
   },
-  "pending": {}
+  "pending": {
+    "a5277d": {
+      "callsign": "CMB595",
+      "first_added": "2026-11-17T06:01:10.073772+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "aa0559": {
+      "callsign": "CMB164",
+      "first_added": "2026-11-17T06:01:12.389788+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "ad3c48": {
+      "callsign": "CMB513",
+      "first_added": "2026-11-17T06:01:13.525642+00:00",
+      "fa_unconfirmed_dest": ""
+    }
+  }
 }
