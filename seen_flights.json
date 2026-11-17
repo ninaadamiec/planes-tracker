@@ -25,14 +25,14 @@
     "ADB5563__2026-11-17": "2026-11-17T11:20:38.747303+00:00"
   },
   "pending": {
-    "152c98": {
-      "callsign": "VDA8260",
-      "first_added": "2026-11-17T17:01:06.842552+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "a45199": {
       "callsign": "CMB536",
       "first_added": "2026-11-17T17:20:38.115463+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "15409f": {
+      "callsign": "VDA8242",
+      "first_added": "2026-11-17T17:40:47.034875+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
