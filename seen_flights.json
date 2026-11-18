@@ -32,6 +32,16 @@
       "callsign": "CMB510",
       "first_added": "2026-11-18T20:01:08.033579+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "a0d062": {
+      "callsign": "CMB132",
+      "first_added": "2026-11-18T20:20:44.877961+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "a8699a": {
+      "callsign": "CMB534",
+      "first_added": "2026-11-18T20:20:46.151699+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
