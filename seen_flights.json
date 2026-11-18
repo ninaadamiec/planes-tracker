@@ -28,21 +28,5 @@
     "ADB563F__2026-11-18": "2026-11-18T03:01:20.707044+00:00",
     "ADB507F__2026-11-18": "2026-11-18T05:20:45.331040+00:00"
   },
-  "pending": {
-    "ac633f": {
-      "callsign": "CMB528",
-      "first_added": "2026-11-18T05:20:39.759287+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "508015": {
-      "callsign": "ADB507F",
-      "first_added": "2026-11-18T05:20:45.331106+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "a5ed66": {
-      "callsign": "CMB522",
-      "first_added": "2026-11-18T05:20:47.879364+00:00",
-      "fa_unconfirmed_dest": ""
-    }
-  }
+  "pending": {}
 }
