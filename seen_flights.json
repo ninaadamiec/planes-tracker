@@ -31,6 +31,11 @@
       "callsign": "CMB536",
       "first_added": "2026-11-18T00:20:32.821517+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "aa95da": {
+      "callsign": "CMB375",
+      "first_added": "2026-11-18T01:40:32.037082+00:00",
+      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
