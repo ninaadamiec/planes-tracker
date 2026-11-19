@@ -629,7 +629,6 @@ def build_email(
     header_text    = "flight to Poland" if is_poland else f"flight ({route.arr or 'unknown destination'})"
     dest_row_label = "To 🇵🇱" if is_poland else "To"
     source_badge   = f'<span style="background:#6b7280;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">{route.source}</span>'
-    fr24_url       = f"https://www.flightradar24.com/{'data/aircraft/' + aircraft.reg if aircraft.reg else callsign}"
     now_str        = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
     def row(label: str, value: str, bg: str = "#f3f4f6", extra_td: str = "") -> str:
@@ -680,16 +679,16 @@ def build_email(
       </table>
       <div style="margin-top:20px">
         <a href="https://www.flightaware.com/live/flight/{callsign}"
-           style="display:inline-block;background:#1a56db;color:#fff;padding:9px 18px;
+           style="display:inline-block;background:#4b5563;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">FlightAware</a>
-        <a href="{fr24_url}"
-           style="display:inline-block;background:#e26f24;color:#fff;padding:9px 18px;
+        <a href="https://www.flightradar24.com/{callsign}"
+           style="display:inline-block;background:#1a56db;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">FlightRadar24</a>
         <a href="https://globe.adsbexchange.com/?icao={icao24}"
            style="display:inline-block;background:#059669;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;margin-right:8px;font-size:13px">ADS-B Exchange</a>
         <a href="https://www.airnavradar.com/flight/{callsign}"
-           style="display:inline-block;background:#374151;color:#fff;padding:9px 18px;
+           style="display:inline-block;background:#7d6b45;color:#fff;padding:9px 18px;
                   text-decoration:none;border-radius:5px;font-size:13px">AirNav</a>
       </div>
     </div>
