@@ -31,26 +31,5 @@
     "CMB526_EPPO_2026-11-19": "2026-11-19T08:01:09.104262+00:00",
     "ADB5565__2026-11-19": "2026-11-19T11:20:40.005845+00:00"
   },
-  "pending": {
-    "152c97": {
-      "callsign": "VDA8108",
-      "first_added": "2026-11-19T14:20:32.309306+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "15409a": {
-      "callsign": "VDA8267",
-      "first_added": "2026-11-19T15:40:39.108652+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "a5ed66": {
-      "callsign": "CMB526",
-      "first_added": "2026-11-19T15:40:42.321964+00:00",
-      "fa_unconfirmed_dest": "EPPO"
-    },
-    "a506da": {
-      "callsign": "CMB229",
-      "first_added": "2026-11-19T15:40:43.976576+00:00",
-      "fa_unconfirmed_dest": ""
-    }
-  }
+  "pending": {}
 }
