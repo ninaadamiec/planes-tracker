@@ -32,14 +32,14 @@
     "ADB5565__2026-11-19": "2026-11-19T11:20:40.005845+00:00"
   },
   "pending": {
-    "a5fef9": {
-      "callsign": "CMB596",
-      "first_added": "2026-11-19T10:45:38.694682+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "ab4ea9": {
       "callsign": "CMB562",
       "first_added": "2026-11-19T13:20:35.661546+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "15409a": {
+      "callsign": "VDA8267",
+      "first_added": "2026-11-19T13:40:38.959309+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
