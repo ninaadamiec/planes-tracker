@@ -35,6 +35,16 @@
       "callsign": "VDA8108",
       "first_added": "2026-11-19T09:01:11.005311+00:00",
       "fa_unconfirmed_dest": ""
+    },
+    "152c96": {
+      "callsign": "VDA316",
+      "first_added": "2026-11-19T09:20:36.751256+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "a506da": {
+      "callsign": "CMB229",
+      "first_added": "2026-11-19T09:20:40.354237+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
