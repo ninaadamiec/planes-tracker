@@ -31,10 +31,10 @@
     "CMB526_EPPO_2026-11-19": "2026-11-19T08:01:09.104262+00:00"
   },
   "pending": {
-    "a5ed66": {
-      "callsign": "CMB526",
-      "first_added": "2026-11-19T08:40:38.972877+00:00",
-      "fa_unconfirmed_dest": "EPPO"
+    "152c97": {
+      "callsign": "VDA8108",
+      "first_added": "2026-11-19T09:01:11.005311+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
