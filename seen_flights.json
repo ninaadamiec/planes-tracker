@@ -36,14 +36,9 @@
     "ADB565F__2026-11-20": "2026-11-20T02:40:46.151030+00:00"
   },
   "pending": {
-    "ab2ae1": {
-      "callsign": "CMB510",
-      "first_added": "2026-11-20T02:40:49.665318+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "a4f6a5": {
       "callsign": "CMB373",
-      "first_added": "2026-11-20T03:20:41.007434+00:00",
+      "first_added": "2026-11-20T03:40:35.317572+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     }
   }
