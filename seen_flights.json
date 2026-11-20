@@ -42,15 +42,15 @@
       "first_added": "2026-11-20T06:40:34.799809+00:00",
       "fa_unconfirmed_dest": ""
     },
-    "ab4ea9": {
-      "callsign": "CMB562",
-      "first_added": "2026-11-20T07:01:09.514146+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "a96ecb": {
       "callsign": "CMB376",
       "first_added": "2026-11-20T09:40:45.314019+00:00",
       "fa_unconfirmed_dest": "EPRZ"
+    },
+    "a8699a": {
+      "callsign": "CMB530",
+      "first_added": "2026-11-20T10:01:19.529335+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
