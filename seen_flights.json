@@ -44,6 +44,11 @@
       "callsign": "CMB374",
       "first_added": "2026-11-21T20:01:09.056734+00:00",
       "fa_unconfirmed_dest": "EPRZ"
+    },
+    "ab9639": {
+      "callsign": "CMB502",
+      "first_added": "2026-11-21T20:20:44.980492+00:00",
+      "fa_unconfirmed_dest": ""
     }
   }
 }
