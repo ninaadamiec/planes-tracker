@@ -33,26 +33,5 @@
     "ADB5607__2026-11-20": "2026-11-20T09:01:22.177353+00:00",
     "CMB376_EPRZ_2026-11-20": "2026-11-20T09:20:41.058291+00:00"
   },
-  "pending": {
-    "acfc26": {
-      "callsign": "CMB531",
-      "first_added": "2026-11-21T11:20:50.055056+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "508116": {
-      "callsign": "CVK7074",
-      "first_added": "2026-11-21T11:20:51.292384+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "aa9d48": {
-      "callsign": "CMB187",
-      "first_added": "2026-11-21T11:20:52.529747+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "ab9639": {
-      "callsign": "CMB560",
-      "first_added": "2026-11-21T11:20:53.768718+00:00",
-      "fa_unconfirmed_dest": ""
-    }
-  }
+  "pending": {}
 }
