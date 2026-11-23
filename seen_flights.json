@@ -33,14 +33,14 @@
     "ADB508F__2026-11-23": "2026-11-23T10:01:07.818748+00:00"
   },
   "pending": {
-    "ab2ae1": {
-      "callsign": "CMB550",
-      "first_added": "2026-11-23T14:40:38.631692+00:00",
-      "fa_unconfirmed_dest": ""
-    },
     "5082a8": {
       "callsign": "CVK7129",
       "first_added": "2026-11-23T15:01:08.356000+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "a1f4c5": {
+      "callsign": "CMB574",
+      "first_added": "2026-11-23T15:20:38.658580+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
