@@ -36,12 +36,22 @@
   "pending": {
     "a603b0": {
       "callsign": "CMB377",
-      "first_added": "2026-11-24T02:20:36.290745+00:00",
+      "first_added": "2026-11-24T03:20:37.370762+00:00",
       "fa_unconfirmed_dest": "EPRZ"
     },
-    "a5f11d": {
-      "callsign": "CMB556",
-      "first_added": "2026-11-24T02:40:47.279144+00:00",
+    "a3e89a": {
+      "callsign": "CMB170",
+      "first_added": "2026-11-24T03:20:40.274521+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "152c98": {
+      "callsign": "VDA8110",
+      "first_added": "2026-11-24T03:20:41.681712+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "15409a": {
+      "callsign": "VDA8269",
+      "first_added": "2026-11-24T03:20:43.059108+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
