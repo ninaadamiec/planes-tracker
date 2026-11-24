@@ -33,9 +33,14 @@
     "ADB3154__2026-11-24": "2026-11-24T11:40:40.829672+00:00"
   },
   "pending": {
-    "a40b24": {
-      "callsign": "CMB558",
-      "first_added": "2026-11-24T13:40:36.657056+00:00",
+    "ac633f": {
+      "callsign": "CMB546",
+      "first_added": "2026-11-24T15:40:46.254507+00:00",
+      "fa_unconfirmed_dest": ""
+    },
+    "a1f4c5": {
+      "callsign": "CMB524",
+      "first_added": "2026-11-24T15:40:47.507443+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
