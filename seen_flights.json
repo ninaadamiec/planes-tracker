@@ -38,21 +38,6 @@
       "callsign": "CMB170",
       "first_added": "2026-11-24T03:20:40.274521+00:00",
       "fa_unconfirmed_dest": ""
-    },
-    "152c98": {
-      "callsign": "VDA8110",
-      "first_added": "2026-11-24T03:20:41.681712+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "a60330": {
-      "callsign": "CMB377",
-      "first_added": "2026-11-24T03:40:41.792582+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
-    },
-    "a603b0": {
-      "callsign": "CMB377",
-      "first_added": "2026-11-24T03:40:43.289823+00:00",
-      "fa_unconfirmed_dest": "EPRZ"
     }
   }
 }
