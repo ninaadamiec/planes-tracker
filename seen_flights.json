@@ -32,26 +32,5 @@
     "ADB354F__2026-11-24": "2026-11-24T06:01:08.888333+00:00",
     "ADB3154__2026-11-24": "2026-11-24T11:40:40.829672+00:00"
   },
-  "pending": {
-    "ab4ea9": {
-      "callsign": "CMB518",
-      "first_added": "2026-11-24T16:20:34.783589+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "5082a8": {
-      "callsign": "CVK7120",
-      "first_added": "2026-11-24T17:01:10.721382+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "152c97": {
-      "callsign": "VDA8114",
-      "first_added": "2026-11-24T17:01:11.885345+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "a1f4c5": {
-      "callsign": "CMB524",
-      "first_added": "2026-11-24T17:01:13.041274+00:00",
-      "fa_unconfirmed_dest": ""
-    }
-  }
+  "pending": {}
 }
