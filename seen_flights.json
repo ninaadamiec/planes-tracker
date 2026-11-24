@@ -33,14 +33,9 @@
     "ADB354F__2026-11-24": "2026-11-24T06:01:08.888333+00:00"
   },
   "pending": {
-    "15409a": {
-      "callsign": "VDA8269",
-      "first_added": "2026-11-24T10:01:03.401003+00:00",
-      "fa_unconfirmed_dest": ""
-    },
-    "152adf": {
-      "callsign": "VDA107",
-      "first_added": "2026-11-24T10:20:38.744853+00:00",
+    "a95c38": {
+      "callsign": "CMB164",
+      "first_added": "2026-11-24T10:40:46.696508+00:00",
       "fa_unconfirmed_dest": ""
     }
   }
